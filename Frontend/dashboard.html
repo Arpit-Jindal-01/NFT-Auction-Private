@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NFT Auction Private</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Bid Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .bid-amount-display {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .bid-amount-display .amount {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .bid-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bid-btn {
+            flex: 1;
+            padding: 1.5rem;
+            font-size: 1.5rem;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .bid-btn:hover {
+            background: var(--light-gray);
+            transform: scale(1.05);
+        }
+
+        .bid-btn:active {
+            transform: scale(0.95);
+        }
+
+        .preset-bids {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preset-btn {
+            padding: 0.75rem;
+            background: var(--light-gray);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .preset-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-brand">🎨 NFT Auction</a>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+                <li><a href="create-auction.html" class="nav-link">Create Auction</a></li>
+                <li><a href="my-auctions.html" class="nav-link">My Auctions</a></li>
+                <li><a href="profile.html" class="nav-link">Profile</a></li>
+                <li>
+                    <div class="connection-status connected" id="connectionStatus">
+                        <span class="status-dot"></span>
+                        <span id="statusText">Connected</span>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>🏠 Dashboard</h1>
+            <p>Privacy-Preserving NFT Auction Platform</p>
+        </div>
+
+        <!-- Wallet Info -->
+        <div class="wallet-info">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="opacity: 0.9; margin-bottom: 0.5rem;">💰 Your Balance</div>
+                    <div class="wallet-balance"><span id="walletBalance">10,000</span> tokens</div>
+                    <div class="wallet-address">
+                        <strong>Address:</strong> <span id="walletAddress">Loading...</span>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="opacity: 0.9; margin-bottom: 0.5rem;">📊 Transactions</div>
+                    <div style="font-size: 2rem; font-weight: bold;"><span id="txCount">0</span></div>
+                    <div style="font-size: 0.9rem; opacity: 0.9;">Total transactions</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 10px; display: flex; justify-content: space-around; text-align: center;">
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">5</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">Fee per transaction</div>
+                </div>
+                <div>
+                    <div style="font-size: 1.2rem; font-weight: bold;">100</div>
+                    <div style="font-size: 0.85rem; opacity: 0.9;">Cost per bid</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-banner">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="activeAuctions">0</div>
+                    <div class="stat-label">Active Auctions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalBids">0</div>
+                    <div class="stat-label">Total Bids</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="highestBid">0</div>
+                    <div class="stat-label">Highest Bid</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="auctionStatus">Init</div>
+                    <div class="stat-label">Auction Status</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Cards -->
+        <div class="card-grid">
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>⚡ Quick Actions</h2>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <a href="create-auction.html" class="btn btn-primary btn-block">
+                        🚀 Create New Auction
+                    </a>
+                    <button class="btn btn-success btn-block" id="submitBidBtn">
+                        💰 Submit Bid (105 tokens)
+                    </button>
+                    <button class="btn btn-secondary btn-block" id="viewAuctionsBtn">
+                        📋 View My Auctions
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Auction -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🎨 Current Auction</h2>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <div>
+                        <span class="badge badge-primary" id="statusBadge">Init</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Highest Bid</label>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                        <span id="currentHighestBid">0</span> tokens
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Total Bids</label>
+                    <div style="font-size: 1.2rem; font-weight: 600;">
+                        <span id="currentTotalBids">0</span> bids
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                    <button class="btn btn-danger" id="endAuctionBtn">Close Auction</button>
+                    <button class="btn btn-success" id="settleAuctionBtn">Settle</button>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Recent Activity</h2>
+                </div>
+                <div id="recentActivity" style="max-height: 250px; overflow-y: auto;">
+                    <p style="color: #888; text-align: center; padding: 2rem;">No recent activity</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction Log -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📝 Transaction Log</h2>
+            </div>
+            <div id="logContainer" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;">
+                <p style="color: #888;">Initializing...</p>
+            </div>
+            <button id="clearLogBtn" class="btn btn-secondary" style="margin-top: 1rem;">Clear Log</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+        let contractState = null;
+
+        // Utility: Add log entry
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '8px';
+            
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545',
+                warning: '#ffc107',
+                info: '#17a2b8'
+            };
+            
+            logEntry.style.color = colors[type] || '#555';
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            
+            if (logContainer.firstElementChild?.textContent === 'Initializing...') {
+                logContainer.innerHTML = '';
+            }
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // Update wallet UI
+        function updateWalletUI(wallet) {
+            if (!wallet) return;
+            document.getElementById('walletBalance').textContent = parseInt(wallet.balance).toLocaleString();
+            document.getElementById('walletAddress').textContent = wallet.shieldedAddress ? 
+                wallet.shieldedAddress.substring(0, 30) + '...' : 'Loading...';
+            document.getElementById('txCount').textContent = wallet.transactionCount || '0';
+        }
+
+        // Update contract state UI
+        function updateUI(state) {
+            if (!state) return;
+            contractState = state;
+            
+            const statusNames = { 0: 'Init', 1: 'Open', 2: 'Closed', 3: 'Done' };
+            const statusColors = { 0: 'badge-primary', 1: 'badge-success', 2: 'badge-warning', 3: 'badge-danger' };
+            
+            const statusName = state.statusName || statusNames[state.auctionStatus] || 'Unknown';
+            
+            document.getElementById('auctionStatus').textContent = statusName;
+            document.getElementById('activeAuctions').textContent = state.auctionStatus === '1' ? '1' : '0';
+            document.getElementById('totalBids').textContent = state.totalBids || '0';
+            document.getElementById('highestBid').textContent = state.highestBid || '0';
+            
+            document.getElementById('statusBadge').textContent = statusName;
+            document.getElementById('statusBadge').className = 'badge ' + statusColors[state.auctionStatus];
+            document.getElementById('currentHighestBid').textContent = state.highestBid || '0';
+            document.getElementById('currentTotalBids').textContent = state.totalBids || '0';
+            
+            // Update connection status
+            document.getElementById('statusText').textContent = 'Connected';
+            document.getElementById('connectionStatus').className = 'connection-status connected';
+        }
+
+        // Show transaction details
+        function showTransaction(transaction) {
+            if (!transaction) return;
+            const amount = parseInt(transaction.amount);
+            const fee = parseInt(transaction.fee);
+            const total = parseInt(transaction.total);
+            addLog(`💸 Deducted: ${amount} tokens + ${fee} fee = ${total} total`, 'warning');
+            addLog(`💰 New balance: ${parseInt(transaction.balanceAfter).toLocaleString()} tokens`, 'info');
+        }
+
+        // Fetch current state
+        async function fetchState() {
+            try {
+                const response = await fetch(`${API_BASE}/state`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateUI(data.state);
+                    if (data.wallet) {
+                        updateWalletUI(data.wallet);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch state:', error);
+                document.getElementById('statusText').textContent = 'Disconnected';
+                document.getElementById('connectionStatus').className = 'connection-status disconnected';
+            }
+        }
+
+        // End auction
+        document.getElementById('endAuctionBtn').addEventListener('click', async () => {
+            addLog('⏳ Closing auction...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/end`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('✅ Auction closed successfully!', 'success');
+                    updateUI(data.state);
+                    if (data.transaction) showTransaction(data.transaction);
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Settle auction
+        document.getElementById('settleAuctionBtn').addEventListener('click', async () => {
+            addLog('⏳ Settling auction...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/settle`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('✅ Auction settled!', 'success');
+                    updateUI(data.state);
+                    if (data.transaction) showTransaction(data.transaction);
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Clear log
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('🗑️ Log cleared', 'info');
+        });
+
+        // View auctions
+        document.getElementById('viewAuctionsBtn').addEventListener('click', () => {
+            window.location.href = 'my-auctions.html';
+        });
+
+        // Initialize
+        addLog('🚀 Dashboard initialized', 'success');
+        addLog('🔌 Connecting to contract runtime...', 'info');
+        fetchState();
+        setInterval(fetchState, 2000); // Auto-refresh every 2 seconds
+        addLog('✅ Ready!', 'success');
+    </script>
+
+    <!-- Bid Modal -->
+    <div id="bidModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Place Your Bid</h2>
+                <button class="close-btn" onclick="closeBidModal()">&times;</button>
+            </div>
+
+            <div class="bid-amount-display">
+                <div style="opacity: 0.9;">Your Bid Amount</div>
+                <div class="amount"><span id="bidAmount">100</span> tokens</div>
+                <div style="opacity: 0.8; font-size: 0.9rem;">+ 5 tokens transaction fee</div>
+            </div>
+
+            <!-- Bid Controls -->
+            <div class="bid-controls">
+                <button class="bid-btn" onclick="decreaseBid()">−</button>
+                <button class="bid-btn" onclick="increaseBid()">+</button>
+            </div>
+
+            <!-- Preset Amounts -->
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Quick Select:</label>
+                <div class="preset-bids">
+                    <button class="preset-btn" onclick="setBid(100)">100</button>
+                    <button class="preset-btn" onclick="setBid(500)">500</button>
+                    <button class="preset-btn" onclick="setBid(1000)">1,000</button>
+                    <button class="preset-btn" onclick="setBid(5000)">5,000</button>
+                    <button class="preset-btn" onclick="setBid(10000)">10,000</button>
+                    <button class="preset-btn" onclick="setBid(50000)">50,000</button>
+                </div>
+            </div>
+
+            <!-- Custom Amount -->
+            <div class="form-group">
+                <label>Custom Amount:</label>
+                <input type="number" id="customBidInput" class="form-control" placeholder="Enter amount" min="1" />
+                <button class="btn btn-secondary btn-block" style="margin-top: 0.5rem;" onclick="setCustomBid()">
+                    Set Custom Amount
+                </button>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div style="background: var(--light-gray); padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Bid Amount:</span>
+                    <strong><span id="bidAmountBreakdown">100</span> tokens</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>Transaction Fee:</span>
+                    <strong>5 tokens</strong>
+                </div>
+                <div style="border-top: 2px solid #ddd; padding-top: 0.5rem; margin-top: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong>Total Cost:</strong>
+                        <strong style="color: var(--primary-color); font-size: 1.2rem;">
+                            <span id="totalCost">105</span> tokens
+                        </strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <button class="btn btn-primary btn-block" style="font-size: 1.1rem; padding: 1rem;" onclick="submitBidFromModal()">
+                🚀 Submit Bid
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Bid modal functions
+        let currentBidAmount = 100;
+
+        function openBidModal() {
+            document.getElementById('bidModal').classList.add('active');
+        }
+
+        function closeBidModal() {
+            document.getElementById('bidModal').classList.remove('active');
+        }
+
+        function increaseBid() {
+            currentBidAmount += 100;
+            updateBidDisplay();
+        }
+
+        function decreaseBid() {
+            if (currentBidAmount > 100) {
+                currentBidAmount -= 100;
+                updateBidDisplay();
+            }
+        }
+
+        function setBid(amount) {
+            currentBidAmount = amount;
+            updateBidDisplay();
+        }
+
+        function setCustomBid() {
+            const customAmount = parseInt(document.getElementById('customBidInput').value);
+            if (customAmount && customAmount > 0) {
+                currentBidAmount = customAmount;
+                updateBidDisplay();
+                document.getElementById('customBidInput').value = '';
+            } else {
+                alert('Please enter a valid amount greater than 0');
+            }
+        }
+
+        function updateBidDisplay() {
+            document.getElementById('bidAmount').textContent = currentBidAmount.toLocaleString();
+            document.getElementById('bidAmountBreakdown').textContent = currentBidAmount.toLocaleString();
+            document.getElementById('totalCost').textContent = (currentBidAmount + 5).toLocaleString();
+        }
+
+        async function submitBidFromModal() {
+            addLog(`💰 Submitting bid of ${currentBidAmount} tokens...`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/bid`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: currentBidAmount })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Bid placed! New highest bid: ${data.state.highestBid} tokens`, 'success');
+                    addLog(`💸 Cost: ${currentBidAmount + 5} tokens (${currentBidAmount} bid + 5 fee)`, 'info');
+                    closeBidModal();
+                    fetchState();
+                } else {
+                    addLog('❌ Failed to place bid: ' + data.error, 'error');
+                }
+            } catch (error) {
+                addLog('❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('bidModal').addEventListener('click', (e) => {
+            if (e.target.id === 'bidModal') {
+                closeBidModal();
+            }
+        });
+
+        // Update submit bid button to open modal
+        document.getElementById('submitBidBtn').addEventListener('click', openBidModal);
+
+        // Initialize bid display
+        updateBidDisplay();
+    </script>
+</body>
+</html>

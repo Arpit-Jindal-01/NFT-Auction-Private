@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - NFT Auction Private</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-brand">🎨 NFT Auction</a>
+            <ul class="nav-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="create-auction.html" class="nav-link">Create Auction</a></li>
+                <li><a href="my-auctions.html" class="nav-link">My Auctions</a></li>
+                <li><a href="profile.html" class="nav-link active">Profile</a></li>
+                <li>
+                    <span class="wallet-badge">
+                        💰 <span id="walletBalance">10,000</span> tokens
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>👤 Your Profile</h1>
+            <p>Manage your account and view your activity</p>
+        </div>
+
+        <div class="card-grid">
+            <!-- Wallet Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>💳 Wallet Information</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label>Balance</label>
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--success-color);">
+                        <span id="balance">10,000</span> tokens
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Shielded Address</label>
+                    <input type="text" id="shieldedAddress" class="form-control" readonly />
+                    <button class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="copyAddress('shielded')">
+                        📋 Copy Address
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label>Unshielded Address</label>
+                    <input type="text" id="unshieldedAddress" class="form-control" readonly />
+                    <button class="btn btn-secondary" style="margin-top: 0.5rem;" onclick="copyAddress('unshielded')">
+                        📋 Copy Address
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label>Contract Address</label>
+                    <input type="text" id="contractAddress" class="form-control" readonly />
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Your Statistics</h2>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Total Transactions</label>
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--primary-color);">
+                        <span id="txCount">0</span>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Total Spent</label>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--danger-color);">
+                        <span id="totalSpent">0</span> tokens
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label>Active Auctions</label>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--warning-color);">
+                        <span id="activeAuctions">0</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label>Total Bids Placed</label>
+                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                        <span id="totalBids">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📝 Transaction History</h2>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Fee</th>
+                            <th>Total</th>
+                            <th>Balance After</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionHistory">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #888; padding: 2rem;">
+                                No transactions yet
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="card">
+            <div class="card-header">
+                <h2>⚙️ Settings</h2>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="privacyMode" checked />
+                    Enable Privacy Mode (hide your address in public views)
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="notifications" checked />
+                    Receive notifications for auction updates
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="autoRefresh" checked />
+                    Auto-refresh data every 2 seconds
+                </label>
+            </div>
+
+            <button class="btn btn-primary">Save Settings</button>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="card" style="border: 2px solid var(--danger-color);">
+            <div class="card-header" style="border-bottom-color: var(--danger-color);">
+                <h2 style="color: var(--danger-color);">⚠️ Danger Zone</h2>
+            </div>
+
+            <div class="alert alert-danger">
+                <strong>Warning:</strong> These actions cannot be undone!
+            </div>
+
+            <button class="btn btn-danger" onclick="resetWallet()">
+                Reset Wallet (for testing)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000';
+
+        // Load wallet info
+        async function loadWalletInfo() {
+            try {
+                const response = await fetch(`${API_BASE}/wallet`);
+                const data = await response.json();
+                
+                if (data.success && data.wallet) {
+                    const wallet = data.wallet;
+                    document.getElementById('walletBalance').textContent = parseInt(wallet.balance).toLocaleString();
+                    document.getElementById('balance').textContent = parseInt(wallet.balance).toLocaleString();
+                    document.getElementById('shieldedAddress').value = wallet.shieldedAddress || 'N/A';
+                    document.getElementById('unshieldedAddress').value = wallet.unshieldedAddress || 'N/A';
+                    document.getElementById('contractAddress').value = wallet.contractAddress || 'N/A';
+                    document.getElementById('txCount').textContent = wallet.transactionCount || '0';
+                }
+            } catch (error) {
+                console.error('Failed to load wallet:', error);
+            }
+        }
+
+        // Load transaction history
+        async function loadTransactions() {
+            try {
+                const response = await fetch(`${API_BASE}/wallet/transactions`);
+                const data = await response.json();
+                
+                if (data.success && data.transactions && data.transactions.length > 0) {
+                    const tbody = document.getElementById('transactionHistory');
+                    tbody.innerHTML = '';
+                    
+                    let totalSpent = 0;
+                    let totalBids = 0;
+                    
+                    data.transactions.forEach(tx => {
+                        const row = document.createElement('tr');
+                        const time = new Date(tx.timestamp).toLocaleString();
+                        
+                        totalSpent += parseInt(tx.total);
+                        if (tx.type === 'Bid Submission') totalBids++;
+                        
+                        row.innerHTML = `
+                            <td>${time}</td>
+                            <td><span class="badge badge-primary">${tx.type}</span></td>
+                            <td>${tx.amount} tokens</td>
+                            <td>${tx.fee} tokens</td>
+                            <td><strong>${tx.total} tokens</strong></td>
+                            <td>${parseInt(tx.balanceAfter).toLocaleString()} tokens</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                    
+                    document.getElementById('totalSpent').textContent = totalSpent.toLocaleString();
+                    document.getElementById('totalBids').textContent = totalBids;
+                }
+            } catch (error) {
+                console.error('Failed to load transactions:', error);
+            }
+        }
+
+        // Load auction stats
+        async function loadAuctionStats() {
+            try {
+                const response = await fetch(`${API_BASE}/state`);
+                const data = await response.json();
+                
+                if (data.success && data.state) {
+                    const activeCount = data.state.auctionStatus === '1' ? 1 : 0;
+                    document.getElementById('activeAuctions').textContent = activeCount;
+                }
+            } catch (error) {
+                console.error('Failed to load auction stats:', error);
+            }
+        }
+
+        // Copy address to clipboard
+        function copyAddress(type) {
+            const input = type === 'shielded' ? 
+                document.getElementById('shieldedAddress') : 
+                document.getElementById('unshieldedAddress');
+            
+            input.select();
+            document.execCommand('copy');
+            
+            const originalBtn = event.target;
+            const originalText = originalBtn.textContent;
+            originalBtn.textContent = '✅ Copied!';
+            originalBtn.style.background = 'var(--success-color)';
+            
+            setTimeout(() => {
+                originalBtn.textContent = originalText;
+                originalBtn.style.background = '';
+            }, 2000);
+        }
+
+        // Reset wallet
+        async function resetWallet() {
+            if (!confirm('⚠️ Are you sure you want to reset your wallet? This will:\n\n• Reset balance to 10,000 tokens\n• Clear all transaction history\n• Reset auction status\n\nThis action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/reset`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('✅ Wallet reset successfully!');
+                    location.reload();
+                } else {
+                    alert('❌ Failed to reset wallet');
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        // Initialize
+        loadWalletInfo();
+        loadTransactions();
+        loadAuctionStats();
+        setInterval(() => {
+            if (document.getElementById('autoRefresh').checked) {
+                loadWalletInfo();
+                loadTransactions();
+                loadAuctionStats();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

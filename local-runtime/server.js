@@ -87,7 +87,8 @@ async function handleRequest(req, res) {
 
     // Route: Start auction
     if (path === '/auction/start' && req.method === 'POST') {
-      const result = await wallet.startAuction();
+      const body = await parseBody(req);
+      const result = await wallet.startAuction(body);
       wallet.displayState();
       sendJSON(res, 200, {
         success: result.success,
@@ -98,6 +99,7 @@ async function handleRequest(req, res) {
           totalBids: result.ledger.totalBids.toString(),
           statusName: wallet.getStatusName(result.ledger.auctionStatus)
         } : null,
+        auctionData: result.auctionData,
         transaction: result.transaction,
         walletBalance: result.walletBalance,
         error: result.error

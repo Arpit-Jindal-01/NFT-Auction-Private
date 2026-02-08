@@ -40,6 +40,9 @@ export class LocalWallet {
       totalBids: 0n
     };
     
+    // Auction data storage
+    this.auctionData = null;
+    
     // Load wallet credentials
     this.loadWalletCredentials();
     
@@ -197,8 +200,32 @@ export class LocalWallet {
     }
   }
 
-  async startAuction() {
-    return this.executeCircuit('startAuction');
+  async startAuction(auctionParams = {}) {
+    // Store auction data
+    this.auctionData = {
+      sellerAddress: auctionParams.sellerAddress,
+      nftId: auctionParams.nftId,
+      nftName: auctionParams.nftName,
+      description: auctionParams.description,
+      endTime: auctionParams.endTime,
+      reservePrice: auctionParams.reservePrice,
+      minIncrement: auctionParams.minIncrement || 100,
+      hideBidders: auctionParams.hideBidders || false,
+      hideAmounts: auctionParams.hideAmounts || false,
+      createdAt: Date.now()
+    };
+    
+    console.log('\n🎨 Creating Auction:');
+    if (auctionParams.nftId) console.log(`   NFT ID: ${auctionParams.nftId}`);
+    if (auctionParams.nftName) console.log(`   Name: ${auctionParams.nftName}`);
+    if (auctionParams.reservePrice) console.log(`   Reserve Price: ${auctionParams.reservePrice} tokens`);
+    if (auctionParams.endTime) console.log(`   Duration: ${auctionParams.endTime} hours`);
+    
+    const result = await this.executeCircuit('startAuction');
+    if (result.success) {
+      result.auctionData = this.auctionData;
+    }
+    return result;
   }
 
   async recordBid() {
