@@ -1,0 +1,56 @@
+export {startAuction, recordBid, endAuction, settle, getStatus, getTopBid}
+
+// Auction status
+enum Status {
+  Init,
+  Open,
+  Closed,
+  Done
+}
+
+// Ledger state
+ledger auctionStatus: Status;
+ledger highestBid: Field;
+ledger totalBids: Field;
+
+// Constructor
+constructor() {
+  auctionStatus = Status.Init;
+  highestBid = 0;
+  totalBids = 0;
+}
+
+// Start the auction
+circuit startAuction(): Field {
+  auctionStatus = Status.Open;
+  return 1;
+}
+
+// Record a bid (incrementing highest)
+circuit recordBid(): Field {
+  highestBid = highestBid + 100;
+  totalBids = totalBids + 1;
+  return highestBid;
+}
+
+// End the auction
+circuit endAuction(): Field {
+  auctionStatus = Status.Closed;
+  return 1;
+}
+
+// Settle the auction
+circuit settle(): Field {
+  auctionStatus = Status.Done;
+  return 1;
+}
+
+// Get status
+circuit getStatus(): Status {
+  return auctionStatus;
+}
+
+// Get current top bid
+circuit getTopBid(): Field {
+  return highestBid;
+}

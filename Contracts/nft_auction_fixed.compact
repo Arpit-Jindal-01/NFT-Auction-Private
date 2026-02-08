@@ -1,0 +1,153 @@
+export {init, createAuction, submitBid, closeAuction, finalizeAuction}
+
+include "std";
+
+// Auction status enumeration
+enum AuctionStatus {
+  NotCreated,
+  Active,
+  Closed,
+  Finalized
+}
+
+// Public auction state
+struct AuctionState {
+  seller: Address;
+  nftId: Uint256;
+  auctionEndTime: Uint64;
+  status: AuctionStatus;
+  reservePrice: Uint64;
+  highestBid: Uint64;
+  winnerAddress: Address;
+  totalBids: Uint64;
+  isSettled: Bool;
+}
+
+// Bid structure  
+struct Bid {
+  bidder: Address;
+  amount: Uint64;
+  timestamp: Uint64;
+}
+
+// Private state - witness functions for private data
+witness private$getBids(): Vector[10, Bid];
+witness private$addBid(bid: Bid): Void;
+witness private$getHighestBidIndex(): Uint64;
+
+// Ledger state
+ledger {
+  // Public auction information
+  auction: Cell[AuctionState];
+}
+
+// Initialize the contract
+circuit init(): Void {
+  const initialState = new AuctionState(
+    new Address(0u256),
+    0u256,
+    0u64,
+    AuctionStatus.NotCreated,
+    0u64,
+    0u64,
+    new Address(0u256),
+    0u64,
+    false
+  );
+  ledger.auction.write(initialState);
+}
+
+// Create a new auction
+circuit createAuction(
+  sellerAddr: Address,
+  nftIdentifier: Uint256,
+  endTime: Uint64,
+  minimumBid: Uint64
+): Void {
+  const currentState = ledger.auction.read();
+  
+  assert (currentState.status == AuctionStatus.NotCreated) "Auction already exists";
+  assert (endTime > 0u64) "End time must be in the future";
+  assert (minimumBid > 0u64) "Reserve price must be greater than zero";
+  
+  const newState = new AuctionState(
+    sellerAddr,
+    nftIdentifier,
+    endTime,
+    AuctionStatus.Active,
+    minimumBid,
+    0u64,
+    new Address(0u256),
+    0u64,
+    false
+  );
+  
+  ledger.auction.write(newState);
+}
+
+// Submit a bid
+circuit submitBid(bidAmount: Uint64): Void {
+  const currentState = ledger.auction.read();
+  
+  assert (currentState.status == AuctionStatus.Active) "Auction is not active";
+  assert (bidAmount >= currentState.reservePrice) "Bid below reserve price";
+  assert (bidAmount > currentState.highestBid) "Bid must be higher than current highest";
+  
+  // Store bid privately (simplified - in production would use witness)
+  const newState = new AuctionState(
+    currentState.seller,
+    currentState.nftId,
+    currentState.auctionEndTime,
+    currentState.status,
+    currentState.reservePrice,
+    bidAmount,
+    new Address(0u256), // Winner not revealed yet
+    currentState.totalBids + 1u64,
+    false
+  );
+  
+  ledger.auction.write(newState);
+}
+
+// Close the auction
+circuit closeAuction(): Void {
+  const currentState = ledger.auction.read();
+  
+  assert (currentState.status == AuctionStatus.Active) "Auction is not active";
+  
+  const newState = new AuctionState(
+    currentState.seller,
+    currentState.nftId,
+    currentState.auctionEndTime,
+    AuctionStatus.Closed,
+    currentState.reservePrice,
+    currentState.highestBid,
+    currentState.winnerAddress,
+    currentState.totalBids,
+    false
+  );
+  
+  ledger.auction.write(newState);
+}
+
+// Finalize and reveal winner
+circuit finalizeAuction(winner: Address): Void {
+  const currentState = ledger.auction.read();
+  
+  assert (currentState.status == AuctionStatus.Closed) "Auction must be closed first";
+  assert (!currentState.isSettled) "Auction already settled";
+  
+  const newState = new AuctionState(
+    currentState.seller,
+    currentState.nftId,
+    currentState.auctionEndTime,
+    AuctionStatus.Finalized,
+    currentState.reservePrice,
+    currentState.highestBid,
+    winner,
+    currentState.totalBids,
+    true
+  );
+  
+  ledger.auction.write(newState);
+}

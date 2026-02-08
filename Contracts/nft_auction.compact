@@ -1,0 +1,111 @@
+export {createAuction, submitBid, closeAuction, finalizeAuction, getAuctionState}
+
+// ============================================================================
+// ENUMERATIONS
+// ============================================================================
+
+enum AuctionStatus {
+  NotCreated,
+  Active,
+  Closed,
+  Finalized
+}
+
+// ============================================================================
+// LEDGER STATE (Public)
+// ============================================================================
+
+ledger seller: Bytes<32>;
+ledger nftId: Field;
+ledger auctionEndTime: Field;
+ledger status: AuctionStatus;
+ledger reservePrice: Field;
+ledger highestBid: Field;
+ledger winnerAddress: Bytes<32>;
+ledger totalBids: Field;
+ledger isSettled: Boolean;
+
+// ============================================================================
+// CONSTRUCTOR
+// ============================================================================
+
+constructor() {
+  seller = 0x0000000000000000000000000000000000000000000000000000000000000000;
+  nftId = 0;
+  auctionEndTime = 0;
+  status = AuctionStatus.NotCreated;
+  reservePrice = 0;
+  highestBid = 0;
+  winnerAddress = 0x0000000000000000000000000000000000000000000000000000000000000000;
+  totalBids = 0;
+  isSettled = false;
+}
+
+// ============================================================================
+// CREATE AUCTION CIRCUIT
+// ============================================================================
+
+circuit createAuction(
+  sellerAddr: Bytes<32>,
+  nftIdentifier: Field,
+  endTime: Field,
+  minimumBid: Field
+): Void {
+  assert status == AuctionStatus.NotCreated;
+  assert endTime > 0;
+  assert minimumBid > 0;
+  
+  seller = sellerAddr;
+  nftId = nftIdentifier;
+  auctionEndTime = endTime;
+  status = AuctionStatus.Active;
+  reservePrice = minimumBid;
+  highestBid = 0;
+  winnerAddress = 0x0000000000000000000000000000000000000000000000000000000000000000;
+  totalBids = 0;
+  isSettled = false;
+}
+
+// ============================================================================
+// SUBMIT BID CIRCUIT
+// ============================================================================
+
+circuit submitBid(bidAmount: Field): Void {
+  assert status == AuctionStatus.Active;
+  assert bidAmount >= reservePrice;
+  assert bidAmount > highestBid;
+  
+  highestBid = bidAmount;
+  totalBids = totalBids + 1;
+}
+
+// ============================================================================
+// CLOSE AUCTION CIRCUIT
+// ============================================================================
+
+circuit closeAuction(): Void {
+  assert (status == AuctionStatus.Active) "Auction is not active";
+  
+  status = AuctionStatus.Closed;
+}
+
+// ============================================================================
+// FINALIZE AUCTION CIRCUIT
+// ============================================================================
+
+circuit finalizeAuction(winner: Bytes<32>): Void {
+  assert status == AuctionStatus.Closed;
+  assert !isSettled;
+  
+  status = AuctionStatus.Finalized;
+  winnerAddress = winner;
+  isSettled = true;
+}
+
+// ============================================================================
+// QUERY FUNCTIONS
+// ============================================================================
+
+circuit getAuctionState(): AuctionStatus {
+  return status;
+}

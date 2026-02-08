@@ -1,0 +1,18 @@
+export {getValue, setValue}
+
+include "std";
+
+// Simple storage contract
+ledger storedValue: Cell[Field];
+
+constructor() {
+  storedValue.write(0f);
+}
+
+circuit setValue(newValue: Field): Void {
+  storedValue.write(newValue);
+}
+
+circuit getValue(): Field {
+  return storedValue.read();
+}

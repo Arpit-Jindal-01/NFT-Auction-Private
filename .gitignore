@@ -1,0 +1,57 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables (contains seed phrase - NEVER commit!)
+.env
+.env.local
+.env.*.local
+
+# Build output
+build/
+dist/
+*.js.map
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Backup files
+*.bak
+*-broken.js
+*-clean.js
+wallet-*.js
+
+# Private keys and credentials (SECURITY)
+*.key
+*.pem
+*.seed
+private/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Optional npm cache
+.npm
+
+# Optional eslint cache
+.eslintcache

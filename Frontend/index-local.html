@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFT Auction Private - Local Runtime</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .mode-badge {
+            display: inline-block;
+            background: rgba(40, 167, 69, 0.9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .status-banner {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .status-value {
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .info-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+        }
+        
+        .info-box li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .alert {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            color: #28a745;
+        }
+
+        .connection-status.disconnected {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">
+        <span id="statusDot">●</span> <span id="statusText">Connecting...</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>🎨 NFT Auction Private</h1>
+            <p>Privacy-Preserving NFT Auctions with Zero-Knowledge Proofs</p>
+            <span class="mode-badge">🖥️ LOCAL RUNTIME MODE</span>
+        </header>
+        
+        <!-- Wallet Info Banner -->
+        <div class="status-banner" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); margin-bottom: 20px;">
+            <h3 style="margin-bottom: 20px; color: white;">💳 Your Wallet</h3>
+            <div class="status-item">
+                <span class="status-label" style="color: rgba(255,255,255,0.9);">Balance:</span>
+                <span class="status-value" id="walletBalance" style="color: white; font-size: 1.8em; font-weight: bold;">10,000</span>
+                <span style="color: rgba(255,255,255,0.8); font-size: 0.9em; margin-left: 5px;">tokens</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label" style="color: rgba(255,255,255,0.9);">Your Address:</span>
+                <span class="status-value" id="walletAddress" style="color: white; font-size: 0.85em;">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label" style="color: rgba(255,255,255,0.9);">Transaction Count:</span>
+                <span class="status-value" id="txCount" style="color: white;">0</span>
+            </div>
+            <div style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; text-align: center;">
+                <span style="color: rgba(255,255,255,0.9); font-size: 0.9em;">💸 Transaction Fee: 5 tokens | 💰 Bid Cost: 100 tokens</span>
+            </div>
+        </div>
+        
+        <div class="status-banner">
+            <h3 style="margin-bottom: 20px; color: #667eea;">📊 Live Auction Status</h3>
+            <div class="status-item">
+                <span class="status-label">Auction Status:</span>
+                <span class="status-value" id="auctionStatus">Loading...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Highest Bid:</span>
+                <span class="status-value" id="highestBid">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Total Bids:</span>
+                <span class="status-value" id="totalBids">0</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Contract Address:</span>
+                <span class="status-value" id="contractAddress">---</span>
+            </div>
+        </div>
+        
+        <div class="card-grid">
+            <!-- Start Auction Card -->
+            <div class="card">
+                <h2>🚀 Start Auction</h2>
+                <div class="info-box" style="margin-top: 0; margin-bottom: 20px;">
+                    <p>Click the button below to open the auction for bidding.</p>
+                </div>
+                <button id="startAuctionBtn">Start Auction</button>
+            </div>
+            
+            <!-- Submit Bid Card -->
+            <div class="card">
+                <h2>💰 Submit Bid</h2>
+                <div class="info-box" style="margin-top: 0; margin-bottom: 20px;">
+                    <p>Each bid increments the amount by 100 tokens.</p>
+                </div>
+                <button id="submitBidBtn">Submit Bid (+100 tokens)</button>
+                <div class="info-box">
+                    <h3>🔒 Privacy Features</h3>
+                    <ul>
+                        <li>Bids are encrypted</li>
+                        <li>Zero-knowledge proofs</li>
+                        <li>Winner revealed after close</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Management Card -->
+            <div class="card">
+                <h2>⚙️ Auction Management</h2>
+                <div class="form-group">
+                    <button id="endAuctionBtn" style="margin-bottom: 15px;">Close Auction</button>
+                </div>
+                <div class="form-group">
+                    <button id="settleAuctionBtn">Settle & Finalize</button>
+                </div>
+                <div class="info-box">
+                    <p><strong>Note:</strong> Close the auction first, then settle to complete the process.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Transaction Log</h2>
+            <div id="logContainer" style="max-height: 300px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px;">
+                <p style="color: #888;">Initializing...</p>
+            </div>
+            <button id="clearLogBtn" style="margin-top: 15px; background: #6c757d;">Clear Log</button>
+        </div>
+        
+        <div class="alert alert-success">
+            <strong>✅ Local Runtime Active:</strong><br>
+            Your contract is running locally using Midnight SDK. All transactions are instant.<br>
+            No blockchain connection required - perfect for development and testing!
+        </div>
+        
+        <footer>
+            <p>Built with ❤️ using Midnight Network | Compact Language & Zero-Knowledge Proofs</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">© 2026 NFT Auction Private | Local Development Mode</p>
+        </footer>
+    </div>
+    
+    <script>
+        // API Configuration
+        const API_BASE = 'http://localhost:3000';
+        
+        // State
+        let contractState = null;
+        
+        // Utility: Add log entry
+        function addLog(message, type = 'info') {
+            const logContainer = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.style.marginBottom = '8px';
+            
+            if (type === 'success') {
+                logEntry.style.color = '#28a745';
+            } else if (type === 'error') {
+                logEntry.style.color = '#dc3545';
+            } else if (type === 'warning') {
+                logEntry.style.color = '#ffc107';
+            } else {
+                logEntry.style.color = '#555';
+            }
+            
+            logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+            
+            if (logContainer.firstChild && logContainer.firstChild.textContent === 'Initializing...') {
+                logContainer.innerHTML = '';
+            }
+            
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // Utility: Update UI with contract state
+        function updateUI(state) {
+            if (!state) return;
+            
+            contractState = state;
+            document.getElementById('auctionStatus').textContent = state.statusName || 'Unknown';
+            document.getElementById('highestBid').textContent = state.highestBid || '0';
+            document.getElementById('totalBids').textContent = state.totalBids || '0';
+            
+            // Update connection status
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const connectionStatus = document.getElementById('connectionStatus');
+            statusDot.textContent = '●';
+            statusText.textContent = 'Connected';
+            connectionStatus.className = 'connection-status connected';
+        }
+        
+        // Utility: Update wallet display
+        function updateWalletUI(wallet) {
+            if (!wallet) return;
+            
+            document.getElementById('walletBalance').textContent = parseInt(wallet.balance).toLocaleString();
+            document.getElementById('walletAddress').textContent = wallet.shieldedAddress ? 
+                wallet.shieldedAddress.substring(0, 30) + '...' : 'Loading...';
+            document.getElementById('txCount').textContent = wallet.transactionCount || '0';
+        }
+        
+        // Utility: Show transaction details
+        function showTransaction(transaction) {
+            if (!transaction) return;
+            
+            const amount = parseInt(transaction.amount);
+            const fee = parseInt(transaction.fee);
+            const total = parseInt(transaction.total);
+            
+            addLog(`💸 Deducted: ${amount} tokens + ${fee} fee = ${total} total`, 'warning');
+            addLog(`💰 New balance: ${parseInt(transaction.balanceAfter).toLocaleString()} tokens`, 'info');
+        }
+        
+        // API: Fetch current state
+        async function fetchState() {
+            try {
+                const response = await fetch(`${API_BASE}/state`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateUI(data.state);
+                    if (data.wallet) {
+                        updateWalletUI(data.wallet);
+                    }
+                    if (data.contractAddress) {
+                        document.getElementById('contractAddress').textContent = data.contractAddress;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch state:', error);
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                const connectionStatus = document.getElementById('connectionStatus');
+                statusDot.textContent = '●';
+                statusText.textContent = 'Disconnected';
+                connectionStatus.className = 'connection-status disconnected';
+            }
+        }
+        
+        // API: Start auction
+        document.getElementById('startAuctionBtn').addEventListener('click', async () => {
+            addLog('⏳ Starting auction...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/start`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('✅ Auction started successfully!', 'success');
+                    updateUI(data.state);
+                    if (data.transaction) {
+                        showTransaction(data.transaction);
+                    }
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed to start auction: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // API: Submit bid
+        document.getElementById('submitBidBtn').addEventListener('click', async () => {
+            addLog('⏳ Submitting bid...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/bid`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ Bid recorded! New amount: ${data.state.highestBid}`, 'success');
+                    updateUI(data.state);
+                    if (data.transaction) {
+                        showTransaction(data.transaction);
+                    }
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed to record bid: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // API: End auction
+        document.getElementById('endAuctionBtn').addEventListener('click', async () => {
+            addLog('⏳ Closing auction...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/end`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('✅ Auction closed successfully!', 'success');
+                    updateUI(data.state);
+                    if (data.transaction) {
+                        showTransaction(data.transaction);
+                    }
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed to close auction: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // API: Settle auction
+        document.getElementById('settleAuctionBtn').addEventListener('click', async () => {
+            addLog('⏳ Settling auction...', 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}/auction/settle`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog('✅ Auction settled and finalized!', 'success');
+                    updateUI(data.state);
+                    if (data.transaction) {
+                        showTransaction(data.transaction);
+                    }
+                    if (data.walletBalance) {
+                        updateWalletUI({ balance: data.walletBalance, transactionCount: parseInt(document.getElementById('txCount').textContent) + 1 });
+                    }
+                } else {
+                    addLog(`❌ Failed to settle auction: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                addLog(`❌ Error: ${error.message}`, 'error');
+            }
+        });
+        
+        // Clear log button
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('🗑️ Log cleared', 'info');
+        });
+        
+        // Initialize
+        addLog('🚀 NFT Auction interface initialized', 'success');
+        addLog('🔌 Connecting to local contract runtime...', 'info');
+        
+        // Fetch initial state
+        fetchState();
+        
+        // Auto-refresh state every 2 seconds
+        setInterval(fetchState, 2000);
+        
+        addLog('✅ Ready! Click "Start Auction" to begin.', 'success');
+    </script>
+</body>
+</html>

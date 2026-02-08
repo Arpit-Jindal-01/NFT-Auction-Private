@@ -1,0 +1,25 @@
+{
+  "name": "nft-auction-private",
+  "version": "1.0.0",
+  "description": "Private NFT Auction Smart Contract on Midnight Network",
+  "main": "deploy/deploy.js",
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf build/auction deploy",
+    "compile": "~/.compact/versions/0.28.0/aarch64-darwin/compactc.bin --skip-zk ./Contracts/auction.compact ./build/auction",
+    "deploy": "node deploy/deploy.js",
+    "deploy:real": "node deploy/deploy-real.js",
+    "test": "node deploy/test-contract.js",
+    "start": "node local-runtime/server.js",
+    "dev": "npm run start",
+    "all": "npm run compile && npm run deploy"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "^0.14.0",
+    "@midnight-ntwrk/ledger": "^4.0.0",
+    "@midnight-ntwrk/midnight-js-network-id": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.7"
+  }
+}

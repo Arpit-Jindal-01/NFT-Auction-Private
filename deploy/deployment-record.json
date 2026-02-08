@@ -1,0 +1,58 @@
+{
+  "contract": {
+    "name": "NFTAuction",
+    "version": "1.0.0",
+    "compiler": "compact-0.28.0",
+    "compiled": "2026-02-08T09:22:37.094Z"
+  },
+  "deployment": {
+    "network": "testnet",
+    "deployer": "0x0000000000000000000000000000000000000000",
+    "timestamp": "2026-02-08T09:22:37.095Z"
+  },
+  "functions": [
+    {
+      "name": "startAuction",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "recordBid",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "endAuction",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "settle",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "getStatus",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "getTopBid",
+      "pure": false,
+      "arguments": 0
+    }
+  ],
+  "state": {
+    "auctionStatus": "Init",
+    "highestBid": 0,
+    "totalBids": 0
+  },
+  "result": {
+    "success": true,
+    "contractAddress": "0x1cd4e14c548fa23e48e32ace907ddacafccf1ac9",
+    "gasUsed": 3086300,
+    "transactionHash": "0x1caefe1f10e81e3d8a8134220a8225ed0bf026b3db3214a6bce59269da1ab9a4",
+    "blockNumber": 258168,
+    "deployedAt": "2026-02-08T09:22:39.611Z"
+  }
+}

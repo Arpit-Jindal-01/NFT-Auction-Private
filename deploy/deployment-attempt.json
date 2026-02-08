@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-02-08T10:14:14.767Z",
+  "status": "HALTED",
+  "reason": "Wallet addresses show undeployed status",
+  "network": "testnet",
+  "addresses": {
+    "shielded": "mn_shield-addr_undeployed1kf5p5s7arvuu97ltfge86zqcczz5ukkdchk608v9x3kn0y28hyx53g248jw6qvrqelkmqlt69dam66sjx50x9yncjpqjcmz0qge3nhgp4xr36",
+    "unshielded": "mn_addr_undeployed1dgfpxpn338naf5xxv2uqpsmjvpgmtnw3flmx480cwjhae0we3e2sye0g4a",
+    "dust": "mn_dust_undeployed1w05ucv74utn03q4jdmvq7cp2g64wy5rrw7qq5yppwt3w7rt7dwd4vxdzctk"
+  },
+  "nextSteps": [
+    "Activate wallet on Midnight Network",
+    "Ensure addresses are deployed",
+    "Fund wallet with testnet tokens",
+    "Verify network connectivity"
+  ]
+}

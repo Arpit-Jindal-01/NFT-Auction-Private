@@ -1,0 +1,67 @@
+export {createAuction, submitBid, closeAuction, finalizeAuction, getStatus}
+
+// Auction status enum  
+enum AuctionStatus {
+  NotCreated,
+  Active,
+  Closed,
+  Finalized
+}
+
+// Public ledger state - using Field for simplicity
+ledger nftId: Field;
+ledger endTime: Field;
+ledger status: AuctionStatus;
+ledger minBid: Field;
+ledger topBid: Field;
+ledger bidCount: Field;
+ledger settled: Boolean;
+
+// Constructor
+constructor() {
+  nftId = 0;
+  endTime = 0;
+  status = AuctionStatus.NotCreated;
+  minBid = 0;
+  topBid = 0;
+  bidCount = 0;
+  settled = false;
+}
+
+// Create new auction
+circuit createAuction(
+  public nftIdentifier: Field,
+  public auctionEnd: Field,
+  public reservePrice: Field
+): Field {
+  status = AuctionStatus.Active;
+  nftId = nftIdentifier;
+  endTime = auctionEnd;
+  minBid = reservePrice;
+  return 1;
+}
+
+// Submit a bid
+circuit submitBid(public amount: Field): Field {
+  topBid = amount;
+  bidCount = bidCount + 1;
+  return 1;
+}
+
+// Close the auction
+circuit closeAuction(): Field {
+  status = AuctionStatus.Closed;
+  return 1;
+}
+
+// Finalize auction
+circuit finalizeAuction(): Field {
+  status = AuctionStatus.Finalized;
+  settled = true;
+  return 1;
+}
+
+// Get auction status
+circuit getStatus(): AuctionStatus {
+  return status;
+}

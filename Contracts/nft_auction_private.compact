@@ -1,0 +1,395 @@
+// ============================================================================
+// ENUMERATIONS
+// ============================================================================
+
+/**
+ * AuctionStatus tracks the lifecycle of the auction
+ */
+enum AuctionStatus {
+  NotCreated,
+  Active,
+  Closed,
+  Finalized
+}
+
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+/**
+ * Bid structure stored in shielded state
+ * Contains private bidder info and bid amount
+ */
+struct PrivateBid {
+  bidderAddress: Address;
+  bidAmount: Uint64;
+  timestamp: Uint64;
+  refunded: Bool;
+}
+
+// ============================================================================
+// PUBLIC STATE (Visible on-chain)
+// ============================================================================
+
+/**
+ * Public ledger state - visible to all participants
+ * Contains only non-sensitive auction metadata
+ */
+struct AuctionPublic {
+  seller: Address;
+  nftId: Uint256;
+  auctionEndTime: Uint64;
+  status: AuctionStatus;
+  reservePrice: Uint64;
+  winnerAddress: Address;
+  winningBidAmount: Uint64;
+  isWinnerRevealed: Bool;
+  totalBids: Uint64;
+  isSettled: Bool;
+}
+
+// ============================================================================
+// SHIELDED STATE (Private, zero-knowledge protected)
+// ============================================================================
+
+/**
+ * Private state - bids and bidder information remain hidden
+ * Only accessible through zero-knowledge circuits
+ */
+struct AuctionPrivate {
+  bids: Array<PrivateBid>;
+  highestBid: Uint64;
+  winningBidIndex: Uint64;
+  winnerComputed: Bool;
+}
+
+// ============================================================================
+// CONTRACT DEFINITION
+// ============================================================================
+
+contract NFTAuctionPrivate {}
+
+ledger auctionPublic: AuctionPublic;
+
+// ============================================================================
+// CONTRACT INITIALIZATION
+// ============================================================================
+
+/**
+ * Constructor - Initialize the contract with empty/default state
+ */
+circuit init(): Void {
+  ledger.auctionPublic = {
+    seller: Address(0),
+    nftId: 0u256,
+    auctionEndTime: 0u64,
+    status: AuctionStatus.NotCreated,
+    reservePrice: 0u64,
+    winnerAddress: Address(0),
+    winningBidAmount: 0u64,
+    isWinnerRevealed: false,
+    totalBids: 0u64,
+    isSettled: false
+  };
+}
+
+// ============================================================================
+// AUCTION CREATION CIRCUIT
+// ============================================================================
+
+/**
+ * createAuction - Initialize a new auction (callable only once)
+ */
+circuit createAuction(
+  sellerAddr: Address,
+  nftIdentifier: Uint256,
+  endTime: Uint64,
+  minimumBid: Uint64
+): Void {
+  const currentPublic = ledger.AuctionPublic;
+  
+  assert(
+    currentPublic.status == AuctionStatus.NotCreated,
+    "Auction already exists"
+  );
+  
+  assert(
+    sellerAddr != Address(0),
+    "Invalid seller address"
+  );
+  
+  assert(
+    nftIdentifier > 0u256,
+    "NFT identifier required"
+  );
+  
+  const currentTime = Ledger.timestamp();
+  assert(
+    endTime > currentTime,
+    "Auction end time must be in the future"
+  );
+  
+  assert(
+    minimumBid > 0u64,
+    "Reserve price must be greater than zero"
+  );
+  
+  const newPublic: AuctionPublic = {
+    seller: sellerAddr,
+    nftId: nftIdentifier,
+    auctionEndTime: endTime,
+    status: AuctionStatus.Active,
+    reservePrice: minimumBid,
+    winnerAddress: Address(0),
+    winningBidAmount: 0u64,
+    isWinnerRevealed: false,
+    totalBids: 0u64,
+    isSettled: false
+  };
+  
+  ledger.AuctionPublic = newPublic;
+}
+
+// ============================================================================
+// BID SUBMISSION CIRCUIT
+// ============================================================================
+
+/**
+ * submitPrivateBid - Submit an encrypted bid to the auction
+ */
+circuit submitPrivateBid(bidAmount: Uint64): Void {
+  const currentPublic = ledger.AuctionPublic;
+  const currentPrivate = state.AuctionPrivate;
+  
+  const bidderAddr = Ledger.sender();
+  const currentTime = Ledger.timestamp();
+  
+  assert(
+    currentPublic.status == AuctionStatus.Active,
+    "Auction is not active"
+  );
+  
+  assert(
+    currentTime < currentPublic.auctionEndTime,
+    "Auction has ended"
+  );
+  
+  assert(
+    bidAmount >= currentPublic.reservePrice,
+    "Bid below reserve price"
+  );
+  
+  assert(
+    bidderAddr != Address(0),
+    "Invalid bidder address"
+  );
+  
+  assert(
+    bidderAddr != currentPublic.seller,
+    "Seller cannot bid on own auction"
+  );
+  
+  const newBid: PrivateBid = {
+    bidderAddress: bidderAddr,
+    bidAmount: bidAmount,
+    timestamp: currentTime,
+    refunded: false
+  };
+  
+  const updatedBids = currentPrivate.bids.concat([newBid]);
+  
+  const newPrivate: AuctionPrivate = {
+    bids: updatedBids,
+    highestBid: currentPrivate.highestBid,
+    winningBidIndex: currentPrivate.winningBidIndex,
+    winnerComputed: currentPrivate.winnerComputed
+  };
+  
+  const newPublic: AuctionPublic = {
+    seller: currentPublic.seller,
+    nftId: currentPublic.nftId,
+    auctionEndTime: currentPublic.auctionEndTime,
+    status: currentPublic.status,
+    reservePrice: currentPublic.reservePrice,
+    winnerAddress: currentPublic.winnerAddress,
+    winningBidAmount: currentPublic.winningBidAmount,
+    isWinnerRevealed: currentPublic.isWinnerRevealed,
+    totalBids: currentPublic.totalBids + 1u64,
+    isSettled: currentPublic.isSettled
+  };
+  
+  state.AuctionPrivate = newPrivate;
+  ledger.AuctionPublic = newPublic;
+}
+
+// ============================================================================
+// AUCTION CLOSURE CIRCUIT
+// ============================================================================
+
+/**
+ * closeAuction - Close the auction after end time
+ */
+circuit closeAuction(): Void {
+  const currentPublic = ledger.AuctionPublic;
+  const currentTime = Ledger.timestamp();
+  
+  assert(
+    currentPublic.status == AuctionStatus.Active,
+    "Auction is not active"
+  );
+  
+  assert(
+    currentTime >= currentPublic.auctionEndTime,
+    "Auction has not ended yet"
+  );
+  
+  const newPublic: AuctionPublic = {
+    seller: currentPublic.seller,
+    nftId: currentPublic.nftId,
+    auctionEndTime: currentPublic.auctionEndTime,
+    status: AuctionStatus.Closed,
+    reservePrice: currentPublic.reservePrice,
+    winnerAddress: currentPublic.winnerAddress,
+    winningBidAmount: currentPublic.winningBidAmount,
+    isWinnerRevealed: currentPublic.isWinnerRevealed,
+    totalBids: currentPublic.totalBids,
+    isSettled: currentPublic.isSettled
+  };
+  
+  ledger.AuctionPublic = newPublic;
+}
+
+// ============================================================================
+// WINNER REVELATION CIRCUIT
+// ============================================================================
+
+/**
+ * revealWinner - Verify and reveal the winning bid
+ */
+circuit revealWinner(candidateIndex: Uint64): Void {
+  const currentPublic = ledger.AuctionPublic;
+  const currentPrivate = state.AuctionPrivate;
+  
+  assert(
+    currentPublic.status == AuctionStatus.Closed,
+    "Auction must be closed first"
+  );
+  
+  assert(
+    !currentPublic.isWinnerRevealed,
+    "Winner already revealed"
+  );
+  
+  assert(
+    currentPrivate.bids.length > 0,
+    "No bids to process"
+  );
+  
+  assert(
+    candidateIndex < currentPrivate.bids.length,
+    "Invalid candidate index"
+  );
+  
+  const candidateBid = currentPrivate.bids[candidateIndex];
+  const winnerAddr = candidateBid.bidderAddress;
+  const winningAmount = candidateBid.bidAmount;
+  
+  const newPrivate: AuctionPrivate = {
+    bids: currentPrivate.bids,
+    highestBid: winningAmount,
+    winningBidIndex: candidateIndex,
+    winnerComputed: true
+  };
+  
+  const newPublic: AuctionPublic = {
+    seller: currentPublic.seller,
+    nftId: currentPublic.nftId,
+    auctionEndTime: currentPublic.auctionEndTime,
+    status: AuctionStatus.Finalized,
+    reservePrice: currentPublic.reservePrice,
+    winnerAddress: winnerAddr,
+    winningBidAmount: winningAmount,
+    isWinnerRevealed: true,
+    totalBids: currentPublic.totalBids,
+    isSettled: currentPublic.isSettled
+  };
+  
+  state.AuctionPrivate = newPrivate;
+  ledger.AuctionPublic = newPublic;
+}
+
+// ============================================================================
+// SETTLEMENT CIRCUIT
+// ============================================================================
+
+/**
+ * settleAuction - Transfer winning bid to seller
+ */
+circuit settleAuction(): Void {
+  const currentPublic = ledger.AuctionPublic;
+  
+  assert(
+    currentPublic.status == AuctionStatus.Finalized,
+    "Auction must be finalized"
+  );
+  
+  assert(
+    currentPublic.isWinnerRevealed,
+    "Winner must be revealed first"
+  );
+  
+  assert(
+    !currentPublic.isSettled,
+    "Auction already settled"
+  );
+  
+  assert(
+    currentPublic.winningBidAmount > 0u64,
+    "No winning bid to settle"
+  );
+  
+  Ledger.transfer(currentPublic.seller, currentPublic.winningBidAmount);
+  
+  const newPublic: AuctionPublic = {
+    seller: currentPublic.seller,
+    nftId: currentPublic.nftId,
+    auctionEndTime: currentPublic.auctionEndTime,
+    status: currentPublic.status,
+    reservePrice: currentPublic.reservePrice,
+    winnerAddress: currentPublic.winnerAddress,
+    winningBidAmount: currentPublic.winningBidAmount,
+    isWinnerRevealed: currentPublic.isWinnerRevealed,
+    totalBids: currentPublic.totalBids,
+    isSettled: true
+  };
+  
+  ledger.AuctionPublic = newPublic;
+}
+
+// ============================================================================
+// QUERY FUNCTIONS
+// ============================================================================
+
+/**
+ * getAuctionStatus - Read current auction public state
+ */
+circuit getAuctionStatus(): AuctionPublic {
+  return ledger.AuctionPublic;
+}
+
+/**
+ * isAuctionActive - Check if auction is currently accepting bids
+ */
+circuit isAuctionActive(): Bool {
+  const currentPublic = ledger.AuctionPublic;
+  const currentTime = Ledger.timestamp();
+  
+  return (
+    currentPublic.status == AuctionStatus.Active &&
+    currentTime < currentPublic.auctionEndTime
+  );
+}
+
+// ============================================================================
+// END OF CONTRACT
+// ============================================================================

@@ -1,0 +1,50 @@
+{
+  "contract": {
+    "name": "NFTAuction",
+    "version": "1.0.0",
+    "compiler": "compact-0.28.0",
+    "compiled": "2026-02-08T09:22:37.094Z"
+  },
+  "deployment": {
+    "network": "testnet",
+    "deployer": "0x0000000000000000000000000000000000000000",
+    "timestamp": "2026-02-08T09:22:37.095Z"
+  },
+  "functions": [
+    {
+      "name": "startAuction",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "recordBid",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "endAuction",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "settle",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "getStatus",
+      "pure": false,
+      "arguments": 0
+    },
+    {
+      "name": "getTopBid",
+      "pure": false,
+      "arguments": 0
+    }
+  ],
+  "state": {
+    "auctionStatus": "Init",
+    "highestBid": 0,
+    "totalBids": 0
+  }
+}

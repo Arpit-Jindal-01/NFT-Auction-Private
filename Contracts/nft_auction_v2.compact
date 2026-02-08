@@ -1,0 +1,74 @@
+export {createAuction, submitBid, closeAuction, finalizeAuction, getStatus}
+
+// Auction status enum
+enum AuctionStatus {
+  NotCreated,
+  Active,
+  Closed,
+  Finalized
+}
+
+// Public ledger state
+ledger seller: Bytes<32>;
+ledger nftId: Field;
+ledger endTime: Field;
+ledger status: AuctionStatus;
+ledger minBid: Field;
+ledger topBid: Field;
+ledger winner: Bytes<32>;
+ledger bidCount: Field;
+ledger settled: Boolean;
+
+// Constructor
+constructor() {
+  seller = bytes(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  nftId = 0;
+  endTime = 0;
+  status = AuctionStatus.NotCreated;
+  minBid = 0;
+  topBid = 0;
+  winner = bytes(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  bidCount = 0;
+  settled = false;
+}
+
+// Create new auction
+circuit createAuction(
+  sellerAddr: Bytes<32>,
+  nftIdentifier: Field,
+  auctionEnd: Field,
+  reservePrice: Field
+): Field {
+  status = AuctionStatus.Active;
+  seller = sellerAddr;
+  nftId = nftIdentifier;
+  endTime = auctionEnd;
+  minBid = reservePrice;
+  return 1;
+}
+
+// Submit a bid
+circuit submitBid(amount: Field): Field {
+  topBid = amount;
+  bidCount = bidCount + 1;
+  return 1;
+}
+
+// Close the auction
+circuit closeAuction(): Field {
+  status = AuctionStatus.Closed;
+  return 1;
+}
+
+// Finalize and set winner
+circuit finalizeAuction(winnerAddr: Bytes<32>): Field {
+  status = AuctionStatus.Finalized;
+  winner = winnerAddr;
+  settled = true;
+  return 1;
+}
+
+// Get auction status
+circuit getStatus(): AuctionStatus {
+  return status;
+}

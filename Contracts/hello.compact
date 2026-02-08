@@ -1,0 +1,11 @@
+export {hello}
+
+ledger message: Field;
+
+constructor() {
+  message = 0;
+}
+
+circuit hello(): Field {
+  return message;
+}
