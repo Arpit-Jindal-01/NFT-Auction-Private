@@ -46,18 +46,21 @@ export class LocalWallet {
     // Load wallet credentials
     this.loadWalletCredentials();
     
-    // Initialize wallet balance and transaction tracking
-    this.walletBalance = 10000n; // Starting balance: 10,000 tokens
+    // Multi-user balance tracking: Map of address -> balance
+    this.userBalances = new Map();
     this.transactionHistory = [];
     this.transactionFee = 5n; // Fee per transaction: 5 tokens
     this.bidAmount = 100n; // Each bid costs 100 tokens
+    
+    // Initialize default wallet with balance
+    this.userBalances.set(this.shieldedAddress, 10000n);
     
     this.contractAddress = sampleContractAddress();
     
     console.log('✅ Wallet initialized');
     console.log(`📍 Contract Address: ${this.contractAddress}`);
-    console.log(`💰 Wallet Balance: ${this.walletBalance} tokens`);
-    console.log(`🔑 Address: ${this.shieldedAddress.substring(0, 30)}...`);
+    console.log(`💰 Default Wallet Balance: 10,000 tokens`);
+    console.log(`🔑 Default Address: ${this.shieldedAddress.substring(0, 30)}...`);
   }
 
   loadWalletCredentials() {
@@ -92,28 +95,55 @@ export class LocalWallet {
     return this.mockState;
   }
 
-  getWalletInfo() {
+  getWalletInfo(address = null) {
+    const userAddress = address || this.shieldedAddress;
+    const balance = this.getUserBalance(userAddress);
+    
     return {
-      balance: this.walletBalance.toString(),
-      shieldedAddress: this.shieldedAddress,
+      balance: balance.toString(),
+      balanceNumber: Number(balance),
+      shieldedAddress: userAddress,
       unshieldedAddress: this.unshieldedAddress,
-      transactionCount: this.transactionHistory.length,
+      transactionCount: this.transactionHistory.filter(tx => tx.address === userAddress).length,
+      address: userAddress,
       contractAddress: this.contractAddress
     };
   }
 
-  getTransactionHistory() {
+  getUserBalance(address) {
+    if (!this.userBalances.has(address)) {
+      // Initialize new user with 10,000 tokens
+      this.userBalances.set(address, 10000n);
+      console.log(`🆕 New user initialized: ${address.substring(0, 30)}... with 10,000 tokens`);
+    }
+    return this.userBalances.get(address);
+  }
+
+  deductFromUser(address, amount) {
+    const currentBalance = this.getUserBalance(address);
+    if (currentBalance < amount) {
+      throw new Error(`Insufficient balance. Required: ${amount}, Available: ${currentBalance}`);
+    }
+    this.userBalances.set(address, currentBalance - amount);
+    console.log(`💸 Deducted ${amount} from ${address.substring(0, 20)}... New balance: ${this.userBalances.get(address)}`);
+  }
+
+  getTransactionHistory(address = null) {
+    if (address) {
+      return this.transactionHistory.filter(tx => tx.address === address);
+    }
     return this.transactionHistory;
   }
 
-  deductBalance(amount, reason) {
+  deductBalanceFromUser(address, amount, reason) {
     const totalCost = amount + this.transactionFee;
+    const currentBalance = this.getUserBalance(address);
     
-    if (this.walletBalance < totalCost) {
-      throw new Error(`Insufficient balance. Need ${totalCost}, have ${this.walletBalance}`);
+    if (currentBalance < totalCost) {
+      throw new Error(`Insufficient balance. Need ${totalCost}, have ${currentBalance}`);
     }
     
-    this.walletBalance -= totalCost;
+    this.userBalances.set(address, currentBalance - totalCost);
     
     const transaction = {
       timestamp: new Date().toISOString(),
@@ -121,19 +151,21 @@ export class LocalWallet {
       amount: amount.toString(),
       fee: this.transactionFee.toString(),
       total: totalCost.toString(),
-      balanceAfter: this.walletBalance.toString()
+      balanceAfter: this.getUserBalance(address).toString(),
+      address: address
     };
     
     this.transactionHistory.push(transaction);
     
-    console.log(`💸 Deducted ${totalCost} tokens (${amount} + ${this.transactionFee} fee)`);
-    console.log(`💰 New balance: ${this.walletBalance} tokens`);
+    console.log(`💸 Deducted ${totalCost} tokens from ${address.substring(0, 20)}... (${amount} + ${this.transactionFee} fee)`);
+    console.log(`💰 New balance: ${this.getUserBalance(address)} tokens`);
     
     return transaction;
   }
 
-  async executeCircuit(circuitName) {
-    console.log(`\n⚡ Executing: ${circuitName}()`);
+  async executeCircuit(circuitName, userAddress = null) {
+    const address = userAddress || this.shieldedAddress;
+    console.log(`\n⚡ Executing: ${circuitName}() for ${address.substring(0, 25)}...`);
     
     try {
       // Check balance and deduct transaction fee for state-changing operations
@@ -141,10 +173,10 @@ export class LocalWallet {
       
       if (circuitName === 'recordBid') {
         // Bid costs bidAmount + transaction fee
-        transaction = this.deductBalance(this.bidAmount, 'Bid Submission');
+        transaction = this.deductBalanceFromUser(address, this.bidAmount, 'Bid Submission');
       } else if (['startAuction', 'endAuction', 'settle'].includes(circuitName)) {
         // Other state changes only cost transaction fee
-        transaction = this.deductBalance(0n, circuitName);
+        transaction = this.deductBalanceFromUser(address, 0n, circuitName);
       }
       
       // Simulate circuit execution with state updates
@@ -157,14 +189,16 @@ export class LocalWallet {
         ledger: this.mockState,
         returnValue: returnValue,
         transaction: transaction,
-        walletBalance: this.walletBalance.toString()
+        walletBalance: this.getUserBalance(address).toString(),
+        userAddress: address
       };
       
     } catch (error) {
       console.log(`❌ ${circuitName}() failed: ${error.message}`);
       return {
         success: false,
-        error: error.message
+        error: error.message,
+        walletBalance: this.getUserBalance(address).toString()
       };
     }
   }
@@ -201,9 +235,11 @@ export class LocalWallet {
   }
 
   async startAuction(auctionParams = {}) {
+    const sellerAddress = auctionParams.sellerAddress || this.shieldedAddress;
+    
     // Store auction data
     this.auctionData = {
-      sellerAddress: auctionParams.sellerAddress,
+      sellerAddress: sellerAddress,
       nftId: auctionParams.nftId,
       nftName: auctionParams.nftName,
       description: auctionParams.description,
@@ -216,20 +252,23 @@ export class LocalWallet {
     };
     
     console.log('\n🎨 Creating Auction:');
+    console.log(`   Seller: ${sellerAddress.substring(0, 25)}...`);
     if (auctionParams.nftId) console.log(`   NFT ID: ${auctionParams.nftId}`);
     if (auctionParams.nftName) console.log(`   Name: ${auctionParams.nftName}`);
     if (auctionParams.reservePrice) console.log(`   Reserve Price: ${auctionParams.reservePrice} tokens`);
     if (auctionParams.endTime) console.log(`   Duration: ${auctionParams.endTime} hours`);
     
-    const result = await this.executeCircuit('startAuction');
+    const result = await this.executeCircuit('startAuction', sellerAddress);
     if (result.success) {
       result.auctionData = this.auctionData;
     }
     return result;
   }
 
-  async recordBid() {
-    return this.executeCircuit('recordBid');
+  async recordBid(bidderAddress = null) {
+    const address = bidderAddress || this.shieldedAddress;
+    console.log(`\n💰 Recording bid from: ${address.substring(0, 25)}...`);
+    return this.executeCircuit('recordBid', address);
   }
 
   async endAuction() {

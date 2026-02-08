@@ -564,10 +564,18 @@
             addLog(`💰 Submitting bid of ${currentBidAmount} tokens...`, 'info');
             
             try {
+                // Get current user address
+                const walletRes = await fetch(`${API_BASE}/wallet`);
+                const walletData = await walletRes.json();
+                const userAddress = walletData.wallet?.shieldedAddress;
+                
                 const response = await fetch(`${API_BASE}/auction/bid`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount: currentBidAmount })
+                    body: JSON.stringify({ 
+                        amount: currentBidAmount,
+                        bidderAddress: userAddress
+                    })
                 });
                 const data = await response.json();
                 

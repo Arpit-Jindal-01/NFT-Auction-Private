@@ -109,7 +109,9 @@ async function handleRequest(req, res) {
 
     // Route: Record bid
     if (path === '/auction/bid' && req.method === 'POST') {
-      const result = await wallet.recordBid();
+      const body = await parseBody(req);
+      const bidderAddress = body.bidderAddress || body.address;
+      const result = await wallet.recordBid(bidderAddress);
       wallet.displayState();
       sendJSON(res, 200, {
         success: result.success,
@@ -122,6 +124,7 @@ async function handleRequest(req, res) {
         } : null,
         transaction: result.transaction,
         walletBalance: result.walletBalance,
+        userAddress: result.userAddress,
         error: result.error
       });
       return;
@@ -194,7 +197,8 @@ async function handleRequest(req, res) {
 
     // Route: Get wallet info
     if (path === '/wallet' && req.method === 'GET') {
-      const walletInfo = wallet.getWalletInfo();
+      const address = url.searchParams.get('address');
+      const walletInfo = wallet.getWalletInfo(address);
       sendJSON(res, 200, {
         success: true,
         wallet: walletInfo
@@ -204,11 +208,13 @@ async function handleRequest(req, res) {
 
     // Route: Get transaction history
     if (path === '/wallet/transactions' && req.method === 'GET') {
-      const transactions = wallet.getTransactionHistory();
+      const address = url.searchParams.get('address');
+      const transactions = wallet.getTransactionHistory(address);
       sendJSON(res, 200, {
         success: true,
         transactions: transactions,
-        count: transactions.length
+        count: transactions.length,
+        address: address
       });
       return;
     }
