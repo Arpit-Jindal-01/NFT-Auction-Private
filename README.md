@@ -8,6 +8,17 @@
 
 ---
 
+<img width="610" height="47" alt="local-proof-server" src="https://github.com/user-attachments/assets/3955ced8-8c99-423c-a836-543c59e72f02" />
+<img width="800" height="222" alt="lace-undeployed-balance" src="https://github.com/user-attachments/assets/8595c427-6187-4703-9a6b-b902ff9bdc49" />
+<img width="1470" height="277" alt="docker-ps" src="https://github.com/user-attachments/assets/0df72b60-bd39-4dbb-9d6c-1e2aecdcf09c" />
+
+Project Demo:-
+https://github.com/user-attachments/assets/e09806e9-1621-4675-94b2-5950b6822177
+
+
+
+
+
 ## 📖 Overview
 
 The NFT auction ecosystem faces critical privacy challenges — where public blockchains expose all bidding activity, seller strategies, and buyer behavior to competitors and surveillance. This creates information asymmetry that disadvantages participants and reduces auction efficiency.
