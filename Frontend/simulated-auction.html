@@ -417,10 +417,15 @@
             font-size: 0.85em;
         }
     </style>
+    
+    <!-- Visual Effects Layer -->
+    <link rel="stylesheet" href="effects.css">
 </head>
 <body>
     <div class="container">
         <header>
+            <img id="leftLogo" class="header-logo-left" alt="Rise in" />
+            <img id="rightLogo" class="header-logo-right" alt="Info" />
             <h1><img src="assets/logo.svg" alt="MidnightMark" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;"> Midnight NFT Auction</h1>
         </header>
         
@@ -1149,5 +1154,17 @@
             console.log('💡 Debug: window.FakeChain');
         });
     </script>
+    
+    <!-- Header Logos -->
+    <script type="module">
+        import { LEFT_LOGO } from './assets/branding/left-logo.js';
+        import { RIGHT_LOGO } from './assets/branding/right-logo.js';
+        
+        document.getElementById('leftLogo').src = LEFT_LOGO;
+        document.getElementById('rightLogo').src = RIGHT_LOGO;
+    </script>
+    
+    <!-- Cursor Sparkle Effect -->
+    <script src="sparkle.js"></script>
 </body>
 </html>
