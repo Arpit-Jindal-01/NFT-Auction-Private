@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lace Wallet Test - Midnight</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #000;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        h1 {
+            color: #00ff00;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+        
+        .section {
+            margin: 25px 0;
+            padding: 20px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        .section h2 {
+            color: #00ff00;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .test-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 3px solid #00ff00;
+        }
+        
+        .test-label {
+            flex: 1;
+        }
+        
+        .test-result {
+            margin-left: 20px;
+            padding: 5px 15px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .result-pass {
+            background: #00ff00;
+            color: #000;
+        }
+        
+        .result-fail {
+            background: #ff0000;
+            color: #fff;
+        }
+        
+        .result-pending {
+            background: #ffaa00;
+            color: #000;
+        }
+        
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #00cc00;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.6);
+        }
+        
+        button:disabled {
+            background: #666;
+            color: #999;
+            cursor: not-allowed;
+        }
+        
+        .console {
+            background: #000;
+            border: 1px solid #00ff00;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+        
+        .console-line {
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+        }
+        
+        .console-success { color: #00ff00; }
+        .console-error { color: #ff0000; }
+        .console-info { color: #00aaff; }
+        .console-warning { color: #ffaa00; }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .status-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+        
+        .status-box label {
+            display: block;
+            color: #00ff00;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+        }
+        
+        .status-box .value {
+            color: #fff;
+            word-break: break-all;
+            font-size: 0.85em;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ LACE WALLET TEST SUITE</h1>
+        <p style="margin-bottom: 20px; color: #00aaff;">Midnight Blockchain - Local Network Testing</p>
+        
+        <!-- System Checks -->
+        <div class="section">
+            <h2>1. SYSTEM CHECKS</h2>
+            <div class="test-item">
+                <span class="test-label">API Loaded:</span>
+                <span id="apiCheck" class="test-result result-pending">CHECKING</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Lace Installed:</span>
+                <span id="laceCheck" class="test-result result-pending">CHECKING</span>
+            </div>
+            <div class="test-item">
+                <span class="test-label">Provider Available:</span>
+                <span id="providerCheck" class="test-result result-pending">CHECKING</span>
+            </div>
+        </div>
+        
+        <!-- Connection Status -->
+        <div class="section">
+            <h2>2. CONNECTION STATUS</h2>
+            <div class="status-grid">
+                <div class="status-box">
+                    <label>Status:</label>
+                    <div class="value" id="connectionStatus">Not Connected</div>
+                </div>
+                <div class="status-box">
+                    <label>Address:</label>
+                    <div class="value" id="walletAddress">N/A</div>
+                </div>
+                <div class="status-box">
+                    <label>Provider:</label>
+                    <div class="value" id="providerType">N/A</div>
+                </div>
+                <div class="status-box">
+                    <label>Last Update:</label>
+                    <div class="value" id="lastUpdate">Never</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="section">
+            <h2>3. ACTIONS</h2>
+            <div class="btn-group">
+                <button id="btnConnect">CONNECT WALLET</button>
+                <button id="btnDisconnect">DISCONNECT</button>
+                <button id="btnGetStatus">GET STATUS</button>
+                <button id="btnCheckInstall">CHECK INSTALL</button>
+                <button id="btnTestAPI">TEST ALL API</button>
+                <button id="btnClearConsole">CLEAR CONSOLE</button>
+            </div>
+        </div>
+        
+        <!-- Console -->
+        <div class="section">
+            <h2>4. CONSOLE OUTPUT</h2>
+            <div class="console" id="console">
+                <div class="console-line console-info">[INFO] Test suite initialized</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Wallet API -->
+    <script src="midnight-wallet.js"></script>
+    
+    <script>
+        // Console logging
+        function log(message, type = 'info') {
+            const console = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = `console-line console-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            line.textContent = `[${timestamp}] ${message}`;
+            console.appendChild(line);
+            console.scrollTop = console.scrollHeight;
+        }
+        
+        // Update display
+        function updateDisplay() {
+            const status = window.MidnightWalletAPI.getStatus();
+            
+            document.getElementById('connectionStatus').textContent = 
+                status.connected ? 'CONNECTED ✓' : 'DISCONNECTED ✗';
+            
+            document.getElementById('walletAddress').textContent = 
+                status.address || 'N/A';
+            
+            document.getElementById('providerType').textContent = 
+                window.MidnightWallet.provider ? 
+                (window.midnight ? 'window.midnight' : 
+                 window.lace ? 'window.lace' : 
+                 'window.cardano.lace') : 'N/A';
+            
+            document.getElementById('lastUpdate').textContent = 
+                new Date().toLocaleTimeString();
+        }
+        
+        // Run system checks
+        function runSystemChecks() {
+            log('Running system checks...', 'info');
+            
+            // Check API
+            if (typeof window.MidnightWalletAPI !== 'undefined') {
+                document.getElementById('apiCheck').textContent = 'PASS ✓';
+                document.getElementById('apiCheck').className = 'test-result result-pass';
+                log('✓ Midnight Wallet API loaded', 'success');
+            } else {
+                document.getElementById('apiCheck').textContent = 'FAIL ✗';
+                document.getElementById('apiCheck').className = 'test-result result-fail';
+                log('✗ API not loaded', 'error');
+            }
+            
+            // Check Lace
+            const isInstalled = window.MidnightWalletAPI.isInstalled();
+            if (isInstalled) {
+                document.getElementById('laceCheck').textContent = 'PASS ✓';
+                document.getElementById('laceCheck').className = 'test-result result-pass';
+                log('✓ Lace Wallet detected', 'success');
+            } else {
+                document.getElementById('laceCheck').textContent = 'FAIL ✗';
+                document.getElementById('laceCheck').className = 'test-result result-fail';
+                log('✗ Lace Wallet not installed', 'error');
+            }
+            
+            // Check Provider
+            const provider = window.midnight || window.lace || window.cardano?.lace;
+            if (provider) {
+                document.getElementById('providerCheck').textContent = 'PASS ✓';
+                document.getElementById('providerCheck').className = 'test-result result-pass';
+                log('✓ Provider available', 'success');
+            } else {
+                document.getElementById('providerCheck').textContent = 'FAIL ✗';
+                document.getElementById('providerCheck').className = 'test-result result-fail';
+                log('✗ Provider not available', 'error');
+            }
+            
+            updateDisplay();
+        }
+        
+        // Button handlers
+        document.getElementById('btnConnect').addEventListener('click', async () => {
+            log('Attempting connection...', 'info');
+            const result = await window.MidnightWalletAPI.connect();
+            
+            if (result.success) {
+                log(`✓ Connected: ${result.address}`, 'success');
+            } else {
+                log(`✗ Connection failed: ${result.error}`, 'error');
+            }
+            
+            updateDisplay();
+        });
+        
+        document.getElementById('btnDisconnect').addEventListener('click', () => {
+            log('Disconnecting...', 'info');
+            window.MidnightWalletAPI.disconnect();
+            log('✓ Disconnected', 'success');
+            updateDisplay();
+        });
+        
+        document.getElementById('btnGetStatus').addEventListener('click', () => {
+            const status = window.MidnightWalletAPI.getStatus();
+            log('Status: ' + JSON.stringify(status, null, 2), 'info');
+            updateDisplay();
+        });
+        
+        document.getElementById('btnCheckInstall').addEventListener('click', () => {
+            runSystemChecks();
+        });
+        
+        document.getElementById('btnTestAPI').addEventListener('click', async () => {
+            log('=== RUNNING API TESTS ===', 'info');
+            
+            // Test 1: isInstalled
+            log('Test 1: isInstalled()', 'info');
+            const installed = window.MidnightWalletAPI.isInstalled();
+            log(`Result: ${installed}`, installed ? 'success' : 'error');
+            
+            // Test 2: getStatus
+            log('Test 2: getStatus()', 'info');
+            const status = window.MidnightWalletAPI.getStatus();
+            log(`Connected: ${status.connected}`, 'info');
+            log(`Address: ${status.address || 'none'}`, 'info');
+            
+            // Test 3: Global state
+            log('Test 3: Global State', 'info');
+            log(`MidnightWallet.connected: ${window.MidnightWallet.connected}`, 'info');
+            
+            // Test 4: Connection (if not connected)
+            if (!status.connected && installed) {
+                log('Test 4: connect()', 'warning');
+                log('Attempting connection...', 'info');
+                const result = await window.MidnightWalletAPI.connect();
+                log(`Result: ${result.success ? 'SUCCESS' : 'FAILED'}`, 
+                    result.success ? 'success' : 'error');
+            }
+            
+            log('=== API TESTS COMPLETE ===', 'info');
+            updateDisplay();
+        });
+        
+        document.getElementById('btnClearConsole').addEventListener('click', () => {
+            document.getElementById('console').innerHTML = '';
+            log('Console cleared', 'info');
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Test suite loaded', 'success');
+            runSystemChecks();
+            
+            // Listen for changes
+            window.MidnightWalletAPI.listenForChanges((address) => {
+                log(`Account changed: ${address}`, 'warning');
+                updateDisplay();
+            });
+        });
+        
+        // Log to console for debugging
+        console.log('%c⚡ LACE WALLET TEST SUITE', 'color: #00ff00; font-size: 20px; font-weight: bold;');
+        console.log('Available commands:');
+        console.log('  window.MidnightWalletAPI.connect()');
+        console.log('  window.MidnightWalletAPI.disconnect()');
+        console.log('  window.MidnightWalletAPI.getStatus()');
+        console.log('  window.MidnightWalletAPI.isInstalled()');
+        console.log('  window.MidnightWallet (global state)');
+    </script>
+</body>
+</html>

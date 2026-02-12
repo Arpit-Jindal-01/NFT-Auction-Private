@@ -1,0 +1,251 @@
+export {startAuction, commitBid, revealBid, finalizeAuction, getStatus, getWinner, getHighestBid}
+
+// Auction phases
+enum Phase {
+  Init,
+  Commit,
+  Reveal,
+  Finalized
+}
+
+// Ledger state - public blockchain state
+ledger currentPhase: Phase;
+ledger totalCommits: Field;
+ledger totalReveals: Field;
+ledger highestBid: Field;
+ledger winnerAddress: Field;    // Store winner as Field representation
+
+// Commitment storage (simplified - first 5 bidders)
+ledger commit1Hash: Field;
+ledger commit1Revealed: Boolean;
+ledger commit1Amount: Field;
+
+ledger commit2Hash: Field;
+ledger commit2Revealed: Boolean;
+ledger commit2Amount: Field;
+
+ledger commit3Hash: Field;
+ledger commit3Revealed: Boolean;
+ledger commit3Amount: Field;
+
+ledger commit4Hash: Field;
+ledger commit4Revealed: Boolean;
+ledger commit4Amount: Field;
+
+ledger commit5Hash: Field;
+ledger commit5Revealed: Boolean;
+ledger commit5Amount: Field;
+
+// Context witnesses - inputs from caller
+witness context$bidHash(): Field;
+witness context$bidAmount(): Field;
+witness context$bidNonce(): Field;
+witness context$bidderSlot(): Field;
+
+// Constructor
+constructor() {
+  currentPhase = Phase.Init;
+  totalCommits = 0;
+  totalReveals = 0;
+  highestBid = 0;
+  winnerAddress = 0;
+  
+  // Initialize commitments
+  commit1Hash = 0;
+  commit1Revealed = false;
+  commit1Amount = 0;
+  
+  commit2Hash = 0;
+  commit2Revealed = false;
+  commit2Amount = 0;
+  
+  commit3Hash = 0;
+  commit3Revealed = false;
+  commit3Amount = 0;
+  
+  commit4Hash = 0;
+  commit4Revealed = false;
+  commit4Amount = 0;
+  
+  commit5Hash = 0;
+  commit5Revealed = false;
+  commit5Amount = 0;
+}
+
+// Start auction - move to commit phase
+circuit startAuction(): Field {
+  currentPhase = Phase.Commit;
+  return 1;
+}
+
+// Commit bid (submit hash of bid)
+circuit commitBid(): Field {
+  const bidHash = context$bidHash();
+  const slot = context$bidderSlot();
+  
+  // Store in appropriate slot (1-5)
+  if (slot == 1) {
+    commit1Hash = bidHash;
+  }
+  if (slot == 2) {
+    commit2Hash = bidHash;
+  }
+  if (slot == 3) {
+    commit3Hash = bidHash;
+  }
+  if (slot == 4) {
+    commit4Hash = bidHash;
+  }
+  if (slot == 5) {
+    commit5Hash = bidHash;
+  }
+  
+  totalCommits = totalCommits + 1;
+  return totalCommits;
+}
+
+// Move to reveal phase
+circuit startRevealPhase(): Field {
+  currentPhase = Phase.Reveal;
+  return 1;
+}
+
+// Reveal bid (provide amount and nonce to verify against hash)
+circuit revealBid(): Field {
+  const amount = context$bidAmount();
+  const nonce = context$bidNonce();
+  const slot = context$bidderSlot();
+  
+  // Compute hash of amount + nonce
+  // In real implementation: hash = poseidon(amount, nonce)
+  // Simplified: use amount + nonce as verification
+  const computedHash = amount + nonce;
+  
+  // Verify and store based on slot
+  if (slot == 1) {
+    // Verify hash matches commitment
+    const matches = (computedHash == commit1Hash);
+    if (matches) {
+      commit1Revealed = true;
+      commit1Amount = amount;
+      totalReveals = totalReveals + 1;
+    }
+  }
+  
+  if (slot == 2) {
+    const matches = (computedHash == commit2Hash);
+    if (matches) {
+      commit2Revealed = true;
+      commit2Amount = amount;
+      totalReveals = totalReveals + 1;
+    }
+  }
+  
+  if (slot == 3) {
+    const matches = (computedHash == commit3Hash);
+    if (matches) {
+      commit3Revealed = true;
+      commit3Amount = amount;
+      totalReveals = totalReveals + 1;
+    }
+  }
+  
+  if (slot == 4) {
+    const matches = (computedHash == commit4Hash);
+    if (matches) {
+      commit4Revealed = true;
+      commit4Amount = amount;
+      totalReveals = totalReveals + 1;
+    }
+  }
+  
+  if (slot == 5) {
+    const matches = (computedHash == commit5Hash);
+    if (matches) {
+      commit5Revealed = true;
+      commit5Amount = amount;
+      totalReveals = totalReveals + 1;
+    }
+  }
+  
+  return totalReveals;
+}
+
+// Finalize auction - determine winner
+circuit finalizeAuction(): Field {
+  // Find highest revealed bid
+  let maxBid = 0;
+  let winner = 0;
+  
+  // Check slot 1
+  if (commit1Revealed) {
+    if (commit1Amount > maxBid) {
+      maxBid = commit1Amount;
+      winner = 1;
+    }
+  }
+  
+  // Check slot 2
+  if (commit2Revealed) {
+    if (commit2Amount > maxBid) {
+      maxBid = commit2Amount;
+      winner = 2;
+    }
+  }
+  
+  // Check slot 3
+  if (commit3Revealed) {
+    if (commit3Amount > maxBid) {
+      maxBid = commit3Amount;
+      winner = 3;
+    }
+  }
+  
+  // Check slot 4
+  if (commit4Revealed) {
+    if (commit4Amount > maxBid) {
+      maxBid = commit4Amount;
+      winner = 4;
+    }
+  }
+  
+  // Check slot 5
+  if (commit5Revealed) {
+    if (commit5Amount > maxBid) {
+      maxBid = commit5Amount;
+      winner = 5;
+    }
+  }
+  
+  // Update state
+  highestBid = maxBid;
+  winnerAddress = winner;
+  currentPhase = Phase.Finalized;
+  
+  return winner;
+}
+
+// Get current phase
+circuit getStatus(): Phase {
+  return currentPhase;
+}
+
+// Get winner slot
+circuit getWinner(): Field {
+  return winnerAddress;
+}
+
+// Get highest bid amount
+circuit getHighestBid(): Field {
+  return highestBid;
+}
+
+// Get commit stats
+circuit getCommitStats(): Field {
+  return totalCommits;
+}
+
+// Get reveal stats
+circuit getRevealStats(): Field {
+  return totalReveals;
+}

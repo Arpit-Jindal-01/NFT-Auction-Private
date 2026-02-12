@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lace Wallet Demo - Midnight Blockchain</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .wallet-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+        
+        .status-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .status-row:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+        
+        .status-value {
+            color: #667eea;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .dot-connected {
+            color: #28a745;
+            font-size: 1.2em;
+        }
+        
+        .dot-disconnected {
+            color: #dc3545;
+            font-size: 1.2em;
+        }
+        
+        .status-connected {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .status-disconnected {
+            color: #dc3545;
+            font-weight: 600;
+        }
+        
+        .address-display {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            color: #333;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .alert.show {
+            display: block;
+        }
+        
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 0.85em;
+            color: #856404;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="wallet-card">
+            <h1>🌙 Lace Wallet</h1>
+            <p class="subtitle">Midnight Blockchain - Local Network</p>
+            
+            <!-- Alert messages -->
+            <div id="alertBox" class="alert"></div>
+            
+            <!-- Status Section -->
+            <div class="status-section">
+                <div class="status-row">
+                    <span class="status-label">Connection Status</span>
+                    <span class="status-value">
+                        <span id="walletStatusDot" class="dot-disconnected">●</span>
+                        <span id="walletStatus" class="status-disconnected">Disconnected</span>
+                    </span>
+                </div>
+                
+                <div class="status-row">
+                    <span class="status-label">Lace Wallet</span>
+                    <span class="status-value">
+                        <span id="laceInstalled" class="badge badge-danger">Not Installed</span>
+                    </span>
+                </div>
+                
+                <div class="status-row">
+                    <span class="status-label">Network</span>
+                    <span class="status-value">Local (Undeployed)</span>
+                </div>
+            </div>
+            
+            <!-- Address Display -->
+            <div class="status-section">
+                <div class="status-label" style="margin-bottom: 10px;">Unshielded Address</div>
+                <div id="walletAddress" class="address-display">Not connected</div>
+            </div>
+            
+            <!-- Connect Button -->
+            <button id="connectWalletBtn" class="btn btn-primary">
+                Connect Lace Wallet
+            </button>
+            
+            <!-- Transaction Section -->
+            <div id="transactionSection" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0; display: none;">
+                <div class="status-label" style="font-size: 1.2em; margin-bottom: 20px; color: #667eea;">
+                    💸 Send Test Transaction
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; color: #555; margin-bottom: 8px;">
+                        Recipient Address:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="recipientAddress" 
+                        placeholder="mn_addr_undeployed..."
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-family: monospace; font-size: 0.9em;"
+                    />
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; color: #555; margin-bottom: 8px;">
+                        Amount (tNIGHT):
+                    </label>
+                    <input 
+                        type="number" 
+                        id="txAmount" 
+                        value="1"
+                        min="0.01"
+                        step="0.01"
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;"
+                    />
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button id="sendTxBtn" class="btn btn-primary" style="flex: 1;">
+                        Send Transaction
+                    </button>
+                    <button id="checkBalanceBtn" class="btn btn-primary" style="flex: 1;">
+                        Check Balance
+                    </button>
+                </div>
+                
+                <div id="txResult" style="padding: 12px; border-radius: 10px; display: none; margin-top: 15px;">
+                    <div id="txResultContent"></div>
+                </div>
+            </div>
+            
+            <!-- Contract Testing Section -->
+            <div id="contractSection" style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0;">
+                <div class="status-label" style="font-size: 1.2em; margin-bottom: 20px; color: #667eea;">
+                    🔧 Test Contract API
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; font-weight: 600; color: #555; margin-bottom: 8px;">
+                        Contract Function:
+                    </label>
+                    <select 
+                        id="contractFunction" 
+                        style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95em;"
+                    >
+                        <option value="getStatus">getStatus</option>
+                        <option value="getTopBid">getTopBid</option>
+                    </select>
+                </div>
+                
+                <button id="callContractBtn" class="btn btn-primary">
+                    📡 Call Contract
+                </button>
+                
+                <div id="contractResult" style="padding: 12px; border-radius: 10px; display: none; margin-top: 15px;">
+                    <div id="contractResultContent"></div>
+                </div>
+            </div>
+            
+            <!-- Info Box -->
+            <div class="info-box">
+                <strong>📝 Requirements:</strong>
+                • Install Lace Wallet browser extension<br>
+                • Configure for Midnight Local Network<br>
+                • Address format: mn_addr_undeployed...<br>
+                • Local node running at localhost:9944
+            </div>
+        </div>
+    </div>
+
+    <!-- Include the Midnight Wallet API -->
+    <script src="midnight-wallet.js"></script>
+    
+    <script>
+        // Message display helper
+        window.showMessage = function(message, type) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = `alert alert-${type} show`;
+            alertBox.textContent = message;
+            
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        };
+        
+        // Update Lace installation status
+        function updateLaceStatus() {
+            const isInstalled = window.MidnightWalletAPI.isInstalled();
+            const badge = document.getElementById('laceInstalled');
+            
+            if (isInstalled) {
+                badge.textContent = 'Installed';
+                badge.className = 'badge badge-success';
+            } else {
+                badge.textContent = 'Not Installed';
+                badge.className = 'badge badge-danger';
+                showMessage('Lace Wallet not detected. Please install the extension.', 'info');
+            }
+        }
+        
+        // Initialize wallet connection when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Initializing Lace Wallet Demo...');
+            
+            // Check Lace installation
+            updateLaceStatus();
+            
+            // Initialize wallet connection with custom UI element IDs
+            window.MidnightWalletAPI.init('connectWalletBtn', {
+                statusElementId: 'walletStatus',
+                addressElementId: 'walletAddress',
+                connectButtonId: 'connectWalletBtn',
+                statusDotId: 'walletStatusDot'
+            });
+            
+            // Listen for account changes
+            window.MidnightWalletAPI.listenForChanges((newAddress) => {
+                showMessage(`Address changed to: ${newAddress}`, 'info');
+                updateTransactionSection();
+            });
+            
+            // Log current status
+            const status = window.MidnightWalletAPI.getStatus();
+            console.log('📊 Current Status:', status);
+            
+            // Update transaction section visibility
+            updateTransactionSection();
+            
+            // Add keyboard shortcut (Ctrl/Cmd + K to connect)
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('connectWalletBtn').click();
+                }
+            });
+            
+            console.log('✅ Demo initialized');
+            console.log('💡 Tip: Press Ctrl/Cmd + K to quick connect');
+        });
+        
+        // Update transaction section visibility
+        function updateTransactionSection() {
+            const status = window.MidnightWalletAPI.getStatus();
+            const txSection = document.getElementById('transactionSection');
+            
+            if (status.connected) {
+                txSection.style.display = 'block';
+            } else {
+                txSection.style.display = 'none';
+            }
+        }
+        
+        // Monitor connection button for changes
+        const originalInit = window.MidnightWalletAPI.init;
+        window.MidnightWalletAPI.init = function(...args) {
+            originalInit(...args);
+            
+            // Override to update transaction section on connect/disconnect
+            const connectBtn = document.getElementById('connectWalletBtn');
+            connectBtn.addEventListener('click', () => {
+                setTimeout(updateTransactionSection, 500);
+            });
+        };
+        
+        // Transaction handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('sendTxBtn').addEventListener('click', async () => {
+                const wallet = window.MidnightWalletAPI.getStatus();
+                
+                if (!wallet.connected) {
+                    showMessage('Please connect your wallet first', 'error');
+                    return;
+                }
+                
+                const recipient = document.getElementById('recipientAddress').value.trim();
+                const amount = document.getElementById('txAmount').value;
+                
+                if (!recipient) {
+                    showMessage('Please enter recipient address', 'error');
+                    return;
+                }
+                
+                if (!amount || parseFloat(amount) <= 0) {
+                    showMessage('Please enter valid amount', 'error');
+                    return;
+                }
+                
+                showMessage(`Sending ${amount} tNIGHT...`, 'info');
+                showTxResult('⏳ Preparing transaction...', 'info');
+                
+                const btn = document.getElementById('sendTxBtn');
+                btn.disabled = true;
+                btn.textContent = 'Sending...';
+                
+                try {
+                    const result = await window.MidnightWalletAPI.sendTransaction(recipient, amount);
+                    
+                    if (result.success) {
+                        showMessage(`Transaction sent! Hash: ${result.txHash}`, 'success');
+                        showTxResult(
+                            `<strong>✅ Transaction Sent!</strong><br><br>
+                            <strong>Hash:</strong> ${result.txHash}<br>
+                            <strong>Amount:</strong> ${result.amount} tNIGHT<br>
+                            <strong>From:</strong> ${result.from.substring(0, 25)}...<br>
+                            <strong>To:</strong> ${result.to.substring(0, 25)}...`,
+                            'success'
+                        );
+                        
+                        // Clear form
+                        document.getElementById('recipientAddress').value = '';
+                        document.getElementById('txAmount').value = '1';
+                    } else {
+                        showMessage(`Transaction failed: ${result.error}`, 'error');
+                        showTxResult(`<strong>❌ Transaction Failed</strong><br><br>${result.error}`, 'error');
+                    }
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'error');
+                    showTxResult(`<strong>❌ Error</strong><br><br>${error.message}`, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Send Transaction';
+                }
+            });
+            
+            document.getElementById('checkBalanceBtn').addEventListener('click', async () => {
+                const wallet = window.MidnightWalletAPI.getStatus();
+                
+                if (!wallet.connected) {
+                    showMessage('Please connect your wallet first', 'error');
+                    return;
+                }
+                
+                showMessage('Checking balance...', 'info');
+                
+                const btn = document.getElementById('checkBalanceBtn');
+                btn.disabled = true;
+                btn.textContent = 'Checking...';
+                
+                try {
+                    const result = await window.MidnightWalletAPI.getBalance();
+                    
+                    if (result.success) {
+                        showMessage(`Balance: ${result.balance} tNIGHT`, 'success');
+                        showTxResult(
+                            `<strong>💰 Wallet Balance</strong><br><br>
+                            <strong>Balance:</strong> ${result.balance} tNIGHT<br>
+                            <strong>Address:</strong> ${result.address.substring(0, 30)}...`,
+                            'success'
+                        );
+                    } else {
+                        showMessage(`Could not fetch balance: ${result.error}`, 'error');
+                        showTxResult(`<strong>⚠️ Balance Check Failed</strong><br><br>${result.error}`, 'error');
+                    }
+                } catch (error) {
+                    showMessage(`Error: ${error.message}`, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Check Balance';
+                }
+            });
+        });
+        
+        // Helper to show transaction result
+        function showTxResult(message, type) {
+            const resultDiv = document.getElementById('txResult');
+            const contentDiv = document.getElementById('txResultContent');
+            
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = message;
+            
+            if (type === 'success') {
+                resultDiv.style.background = '#d4edda';
+                resultDiv.style.border = '2px solid #28a745';
+                resultDiv.style.color = '#155724';
+            } else if (type === 'error') {
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.border = '2px solid #dc3545';
+                resultDiv.style.color = '#721c24';
+            } else {
+                resultDiv.style.background = '#d1ecf1';
+                resultDiv.style.border = '2px solid #17a2b8';
+                resultDiv.style.color = '#0c5460';
+            }
+        }
+        
+        // Expose status checker for debugging
+        window.checkWalletStatus = () => {
+            const status = window.MidnightWalletAPI.getStatus();
+            console.table(status);
+            return status;
+        };
+        
+        // Call Test Contract API
+        async function callTestContract() {
+            const functionName = document.getElementById('contractFunction').value;
+            const btn = document.getElementById('callContractBtn');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.textContent = '⏳ Calling...';
+            showContractResult('⏳ Sending request to backend...', 'info');
+            
+            try {
+                // Send POST request to backend API
+                const response = await fetch('http://localhost:3000/api/test-contract', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        function: functionName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    // Success - display transaction hash and result
+                    let resultHtml = `<strong>✅ Transaction Successful!</strong><br><br>`;
+                    resultHtml += `<strong>Function:</strong> ${data.function}<br>`;
+                    
+                    if (data.txHash) {
+                        resultHtml += `<strong>TX Hash:</strong> <span style="font-family: monospace; font-size: 0.85em;">${data.txHash}</span><br>`;
+                    }
+                    
+                    if (data.status !== undefined) {
+                        resultHtml += `<strong>Status:</strong> ${data.status}<br>`;
+                    }
+                    
+                    if (data.topBid !== undefined) {
+                        resultHtml += `<strong>Top Bid:</strong> ${data.topBid}<br>`;
+                    }
+                    
+                    if (data.timestamp) {
+                        const time = new Date(data.timestamp).toLocaleString();
+                        resultHtml += `<strong>Time:</strong> ${time}<br>`;
+                    }
+                    
+                    showContractResult(resultHtml, 'success');
+                    showMessage(`Contract call successful! TX: ${data.txHash?.substring(0, 20)}...`, 'success');
+                } else {
+                    // Error from backend
+                    const errorMsg = data.error || 'Unknown error';
+                    let errorHtml = `<strong>❌ Transaction Failed</strong><br><br>`;
+                    errorHtml += `<strong>Error:</strong> ${errorMsg}<br>`;
+                    
+                    if (data.available) {
+                        errorHtml += `<strong>Available:</strong> ${data.available.join(', ')}<br>`;
+                    }
+                    
+                    showContractResult(errorHtml, 'error');
+                    showMessage(`Error: ${errorMsg}`, 'error');
+                }
+            } catch (error) {
+                // Network or parsing error
+                let errorHtml = `<strong>❌ Request Failed</strong><br><br>`;
+                errorHtml += `<strong>Error:</strong> ${error.message}<br><br>`;
+                
+                if (error.message.includes('fetch')) {
+                    errorHtml += `<em>💡 Make sure the backend server is running on port 3000:<br>`;
+                    errorHtml += `<code>npm start</code></em>`;
+                }
+                
+                showContractResult(errorHtml, 'error');
+                showMessage(`Network error: ${error.message}`, 'error');
+            } finally {
+                // Reset button state
+                btn.disabled = false;
+                btn.textContent = '📡 Call Contract';
+            }
+        }
+        
+        // Helper to show contract result
+        function showContractResult(message, type) {
+            const resultDiv = document.getElementById('contractResult');
+            const contentDiv = document.getElementById('contractResultContent');
+            
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = message;
+            
+            if (type === 'success') {
+                resultDiv.style.background = '#d4edda';
+                resultDiv.style.border = '2px solid #28a745';
+                resultDiv.style.color = '#155724';
+            } else if (type === 'error') {
+                resultDiv.style.background = '#f8d7da';
+                resultDiv.style.border = '2px solid #dc3545';
+                resultDiv.style.color = '#721c24';
+            } else {
+                resultDiv.style.background = '#d1ecf1';
+                resultDiv.style.border = '2px solid #17a2b8';
+                resultDiv.style.color = '#0c5460';
+            }
+        }
+        
+        // Attach event listener for contract call button
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('callContractBtn').addEventListener('click', callTestContract);
+        });
+        
+        console.log('🔍 Debug: Type checkWalletStatus() in console to see wallet state');
+    </script>
+</body>
+</html>

@@ -7,16 +7,24 @@
 
 import http from 'http';
 import { LocalWallet } from './wallet.js';
+import { ContractClient } from './contract-client.js';
 
 const PORT = 3000;
 
 // Initialize wallet
 let wallet;
 
+// Initialize contract client
+let contractClient;
+
 function initializeWallet() {
   console.log('\n🔧 Initializing Local Contract Environment...\n');
   wallet = new LocalWallet();
   wallet.displayState();
+  
+  // Initialize contract client
+  console.log('\n🔧 Initializing Contract Client...\n');
+  contractClient = new ContractClient();
 }
 
 /**
@@ -240,6 +248,68 @@ async function handleRequest(req, res) {
       return;
     }
 
+    // Route: Test contract call
+    if (path === '/api/test-contract' && req.method === 'POST') {
+      const body = await parseBody(req);
+      const functionName = body.function || 'getStatus';
+      
+      console.log(`\n🧪 Testing contract function: ${functionName}`);
+      
+      try {
+        let result;
+        
+        // Call the specified function or default to getStatus
+        if (functionName === 'getStatus') {
+          result = await contractClient.callGetStatus();
+        } else if (functionName === 'getTopBid') {
+          result = await contractClient.callGetTopBid();
+        } else {
+          // Generic function call
+          result = await contractClient.callContractFunction(functionName, body.args || []);
+        }
+        
+        if (result.success) {
+          console.log('✅ Contract call successful');
+          console.log('📝 Transaction Hash:', result.txHash);
+          
+          sendJSON(res, 200, {
+            success: true,
+            message: 'Contract function called successfully',
+            txHash: result.txHash,
+            result: result,
+            contractInfo: contractClient.getInfo()
+          });
+        } else {
+          console.error('❌ Contract call failed:', result.error);
+          
+          sendJSON(res, 400, {
+            success: false,
+            error: result.error,
+            function: functionName
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error calling contract:', error);
+        
+        sendJSON(res, 500, {
+          success: false,
+          error: error.message,
+          stack: error.stack
+        });
+      }
+      return;
+    }
+
+    // Route: Get contract info
+    if (path === '/api/contract/info' && req.method === 'GET') {
+      const info = contractClient.getInfo();
+      sendJSON(res, 200, {
+        success: true,
+        contract: info
+      });
+      return;
+    }
+
     // 404 Not Found
     sendJSON(res, 404, {
       success: false,
@@ -255,7 +325,9 @@ async function handleRequest(req, res) {
         'POST /auction/settle',
         'GET  /auction/status',
         'GET  /auction/topbid',
-        'POST /reset'
+        'POST /reset',
+        'POST /api/test-contract',
+        'GET  /api/contract/info'
       ]
     });
 
@@ -290,6 +362,9 @@ server.listen(PORT, () => {
   console.log(`   GET  http://localhost:${PORT}/auction/status`);
   console.log(`   GET  http://localhost:${PORT}/auction/topbid`);
   console.log(`   POST http://localhost:${PORT}/reset`);
+  console.log(`\n🧪 Contract Testing Endpoints:`);
+  console.log(`   POST http://localhost:${PORT}/api/test-contract`);
+  console.log(`   GET  http://localhost:${PORT}/api/contract/info`);
   console.log('\n💡 Press Ctrl+C to stop the server\n');
   console.log('='.repeat(60) + '\n');
 });

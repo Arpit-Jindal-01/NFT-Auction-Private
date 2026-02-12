@@ -7,9 +7,12 @@
   "scripts": {
     "clean": "rm -rf build/auction deploy",
     "compile": "~/.compact/versions/0.28.0/aarch64-darwin/compactc.bin --skip-zk ./Contracts/auction.compact ./build/auction",
+    "compile:sealed": "~/.compact/versions/0.28.0/aarch64-darwin/compactc.bin --skip-zk ./Contracts/sealed_bid_auction.compact ./build/sealed_auction",
     "deploy": "node deploy/deploy.js",
     "deploy:real": "node deploy/deploy-real.js",
     "test": "node deploy/test-contract.js",
+    "test:api": "node test-contract-api.js",
+    "test:sealed": "node test-sealed-auction.js",
     "start": "node local-runtime/server.js",
     "dev": "npm run start",
     "all": "npm run compile && npm run deploy"
