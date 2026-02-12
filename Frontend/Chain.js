@@ -1,25 +1,20 @@
-/**
- * FAKE BLOCKCHAIN ENGINE FOR MIDNIGHT NFT AUCTION
- * 
- * Simulates a complete blockchain environment in the browser using localStorage.
- * No wallet extension required. No network calls. Pure client-side simulation.
- */
+
 
 // ============================================================================
 // STORAGE KEYS
 // ============================================================================
 
 const STORAGE_KEYS = {
-    WALLET: 'midnight_fake_wallet',
-    AUCTIONS: 'midnight_fake_auctions',
-    TRANSACTION_HISTORY: 'midnight_fake_transactions'
+    WALLET: 'midnight_wallet',
+    AUCTIONS: 'midnight_auctions',
+    TRANSACTION_HISTORY: 'midnight_transactions'
 };
 
 // ============================================================================
-// FAKE WALLET ENGINE
+// WALLET ENGINE
 // ============================================================================
 
-class FakeWallet {
+class Wallet {
     constructor() {
         this.loadWallet();
     }
@@ -214,14 +209,10 @@ class FakeBlockchain {
         // Deduct bid amount
         this.wallet.deductTokens(bidAmount, `Bid on auction: ${auction.title}`);
 
-        // Refund previous highest bidder
+        // Refund previous highest bidder if exists
         if (auction.highestBidder && auction.bids.length > 0) {
             const previousBid = auction.highestBid;
             const previousBidder = auction.highestBidder;
-            
-            // In real scenario, we'd refund to previous bidder
-            // For simulation, just log it
-            console.log(`Refunded ${previousBid} tNIGHT to ${previousBidder}`);
         }
 
         // Update auction
@@ -624,6 +615,3 @@ window.FakeChain = {
     toast: toastManager,
     modal: modalManager
 };
-
-console.log('🎭 Fake Blockchain Engine Loaded!');
-console.log('Access via: window.FakeChain');

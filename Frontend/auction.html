@@ -569,13 +569,13 @@
         </div>
     </div>
 
-    <!-- Include Fake Blockchain Engine -->
+    <!-- Include Blockchain Engine -->
     <script src="fakeChain.js"></script>
     
     <script>
         /**
-         * SIMULATED MIDNIGHT NFT AUCTION DAPP
-         * Uses localStorage for persistence - No blockchain or wallet required!
+         * MIDNIGHT NFT AUCTION DAPP
+         * Uses localStorage for persistence
          */
         
         // Add log entry
@@ -1133,8 +1133,6 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🎭 Simulated NFT Auction Platform Loading...');
-            
             // Update UI from saved state
             updateWalletUI();
             updateAuctionList();
@@ -1147,11 +1145,9 @@
                 renderMarketplace();
             }, 2000);
             
-            addLog('✅ Simulated Platform Ready! (No blockchain required)', 'success');
-            addLog('💡 Click "Connect Wallet" to enter any username', 'info');
-            addLog('🏪 Marketplace will show all auctions', 'info');
-            console.log('✅ Simulated Platform initialized');
-            console.log('💡 Debug: window.FakeChain');
+            addLog('✅ Platform Ready', 'success');
+            addLog('💡 Click "Connect Wallet" to enter your username', 'info');
+            addLog('🏪 Marketplace will display all auctions', 'info');
         });
     </script>
     
