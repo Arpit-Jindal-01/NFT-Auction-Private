@@ -9,10 +9,29 @@
 ---
 
 <img width="610" height="47" alt="local-proof-server" src="https://github.com/user-attachments/assets/3955ced8-8c99-423c-a836-543c59e72f02" />
+
+
 <img width="800" height="222" alt="lace-undeployed-balance" src="https://github.com/user-attachments/assets/8595c427-6187-4703-9a6b-b902ff9bdc49" />
+
+
 <img width="1470" height="277" alt="docker-ps" src="https://github.com/user-attachments/assets/0df72b60-bd39-4dbb-9d6c-1e2aecdcf09c" />
 
-Project Demo:-
+
+<img width="1470" height="939" alt="Screenshot 2026-02-13 at 1 13 09 AM" src="https://github.com/user-attachments/assets/e98531c5-4d14-49e9-a69a-7b6bce7c3b1a" />
+
+
+<img width="1470" height="738" alt="Screenshot 2026-02-13 at 1 14 55 AM" src="https://github.com/user-attachments/assets/7f07d7ea-0f64-44d3-91a5-c8315a81bbc4" />
+
+
+<img width="1470" height="709" alt="Screenshot 2026-02-13 at 1 15 36 AM" src="https://github.com/user-attachments/assets/0dcfb19c-9a39-4fd1-b30a-e16731a26e2a" />
+
+
+<img width="1470" height="769" alt="Screenshot 2026-02-13 at 1 16 12 AM" src="https://github.com/user-attachments/assets/808cc0e1-0750-48d5-bd9d-2e841d0f55d6" />
+
+
+
+**Project Demo:-**
+
 https://github.com/user-attachments/assets/e09806e9-1621-4675-94b2-5950b6822177
 
 
