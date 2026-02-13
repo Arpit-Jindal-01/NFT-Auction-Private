@@ -15,9 +15,9 @@
     "test:sealed": "node test-sealed-auction.js",
     "start": "node local-runtime/server.js",
     "dev": "npm run start",
-    "dev:react": "vite",
-    "build:react": "vite build",
-    "preview:react": "vite preview",
+    "dev:react": "cd Frontend && vite",
+    "build:react": "cd Frontend && vite build",
+    "preview:react": "cd Frontend && vite preview",
     "all": "npm run compile && npm run deploy"
   },
   "dependencies": {
