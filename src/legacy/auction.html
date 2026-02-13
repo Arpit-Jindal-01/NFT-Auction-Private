@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulated NFT Auction - Midnight</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0b0f17;
+            min-height: 100vh;
+            padding: 20px;
+            color: #e5e7eb;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            color: #e5e7eb;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        header p {
+            font-size: 1.1em;
+            color: #9ca3af;
+        }
+        
+        .badge {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        
+        /* Wallet Section */
+        .wallet-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .wallet-header h2 {
+            color: #6366f1;
+            font-size: 1.5em;
+        }
+        
+        .wallet-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .dot-connected {
+            color: #22c55e;
+            font-size: 1.5em;
+        }
+        
+        .dot-disconnected {
+            color: #ef4444;
+            font-size: 1.5em;
+        }
+        
+        .status-connected {
+            color: #22c55e;
+            font-weight: 600;
+        }
+        
+        .status-disconnected {
+            color: #ef4444;
+            font-weight: 600;
+        }
+        
+        .wallet-info {
+            background: #0b0f17;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .wallet-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .wallet-row:last-child {
+            border-bottom: none;
+        }
+        
+        .wallet-label {
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        
+        .wallet-value {
+            color: #6366f1;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(99,102,241,0.2);
+        }
+        
+        .card h3 {
+            color: #6366f1;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+        }
+        
+        /* Auction Status */
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        
+        .status-value {
+            color: #6366f1;
+            font-weight: 500;
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 6px 25px rgba(99,102,241,0.5);
+        }
+        
+        .btn-success {
+            background: #22c55e;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Activity Log */
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #0b0f17;
+            border: 1px solid #1f2937;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .log-entry {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        
+        .log-success {
+            background: rgba(34,197,94,0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+        
+        .log-error {
+            background: rgba(239,68,68,0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+        
+        .log-warning {
+            background: rgba(245,158,11,0.1);
+            color: #f59e0b;
+            border: 1px solid rgba(245,158,11,0.3);
+        }
+        
+        .log-info {
+            background: rgba(99,102,241,0.1);
+            color: #6366f1;
+            border: 1px solid rgba(99,102,241,0.3);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #1f2937;
+            border-radius: 8px;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            background: #0b0f17;
+            color: #e5e7eb;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        
+        /* Marketplace Section */
+        .marketplace-header {
+            text-align: center;
+            margin: 40px 0 30px;
+        }
+        
+        .marketplace-header h2 {
+            font-size: 2em;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+        
+        .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .auction-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .auction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(99,102,241,0.3);
+            border-color: #6366f1;
+        }
+        
+        .auction-card-header {
+            margin-bottom: 15px;
+        }
+        
+        .auction-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #e5e7eb;
+            margin-bottom: 8px;
+        }
+        
+        .auction-creator {
+            font-size: 0.85em;
+            color: #9ca3af;
+            font-family: monospace;
+        }
+        
+        .auction-info {
+            margin: 15px 0;
+        }
+        
+        .auction-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1f2937;
+        }
+        
+        .auction-info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .auction-label {
+            color: #9ca3af;
+            font-size: 0.9em;
+        }
+        
+        .auction-value {
+            color: #e5e7eb;
+            font-weight: 600;
+        }
+        
+        .auction-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .status-open {
+            background: rgba(34,197,94,0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+        
+        .status-ended {
+            background: rgba(245,158,11,0.2);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+        
+        .status-settled {
+            background: rgba(99,102,241,0.2);
+            color: #6366f1;
+            border: 1px solid #6366f1;
+        }
+        
+        .auction-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .auction-actions .btn {
+            margin: 0;
+            padding: 10px;
+            font-size: 0.85em;
+        }
+    </style>
+    
+    <!-- Visual Effects Layer -->
+    <link rel="stylesheet" href="effects.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img id="leftLogo" class="header-logo-left" alt="Rise in" />
+            <img id="rightLogo" class="header-logo-right" alt="Info" />
+            <h1><img src="assets/logo.svg" alt="MidnightMark" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;"> Midnight NFT Auction</h1>
+        </header>
+        
+        <!-- Wallet Card -->
+        <div class="wallet-card">
+            <div class="wallet-header">
+                <h2>💼 Wallet</h2>
+                <div class="wallet-status">
+                    <span id="walletStatusDot" class="dot-disconnected">●</span>
+                    <span id="walletStatus" class="status-disconnected">Not Connected</span>
+                </div>
+            </div>
+            
+            <div class="wallet-info">
+                <div class="wallet-row">
+                    <span class="wallet-label">Address:</span>
+                    <span class="wallet-value" id="walletAddress">Not connected</span>
+                </div>
+                <div class="wallet-row">
+                    <span class="wallet-label">Balance:</span>
+                    <span class="wallet-value" id="laceInstalled">0 tNIGHT</span>
+                </div>
+            </div>
+            
+            <button id="connectWalletBtn" class="btn btn-primary">Connect Wallet</button>
+        </div>
+        
+        <!-- Marketplace Section -->
+        <div class="marketplace-header">
+            <h2>🏪 NFT Auction Marketplace</h2>
+            <p style="color: #9ca3af;">All active and past auctions</p>
+        </div>
+        <div id="marketplace" class="marketplace-grid">
+            <!-- Auction cards will be rendered here -->
+        </div>
+        
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Auction Status Card -->
+            <div class="card">
+                <h3>📊 Auction Status</h3>
+                <div class="status-item">
+                    <span class="status-label">State:</span>
+                    <span class="status-value" id="auctionState">No Auctions</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Highest Bid:</span>
+                    <span class="status-value" id="highestBid">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Total Bids:</span>
+                    <span class="status-value" id="totalBids">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Auction ID:</span>
+                    <span class="status-value" id="contractAddress" style="font-size: 0.75em;">N/A</span>
+                </div>
+            </div>
+            
+            <!-- Auction Actions Card -->
+            <div class="card">
+                <h3>⚡ Auction Actions</h3>
+                <button id="startAuctionBtn" class="btn btn-success">
+                    🎨 Create Auction (-100 tNIGHT)
+                </button>
+                <button id="submitBidBtn" class="btn btn-primary">
+                    💰 Place Bid
+                </button>
+                <button id="endAuctionBtn" class="btn btn-warning">
+                    🔒 End Auction
+                </button>
+                <button id="settleAuctionBtn" class="btn btn-danger">
+                    💸 Settle Auction
+                </button>
+            </div>
+        </div>
+        
+        <!-- Transaction Card -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>💸 Send Tokens</h3>
+            <div>
+                <label>Recipient Address:</label>
+                <input 
+                    type="text" 
+                    id="recipientInput" 
+                    placeholder="e.g., midnight_user_abc123"
+                />
+            </div>
+            <div>
+                <label>Amount (tNIGHT):</label>
+                <input 
+                    type="number" 
+                    id="txAmount" 
+                    value="1"
+                    min="0.01"
+                    step="0.01"
+                />
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button id="sendTxBtn" class="btn btn-primary" style="flex: 1;">
+                    Send Transaction
+                </button>
+                <button id="checkBalanceBtn" class="btn btn-success" style="flex: 1;">
+                    Check Balance
+                </button>
+            </div>
+            <div id="txResult" style="margin-top: 15px; padding: 12px; border-radius: 8px; display: none;">
+                <div id="txResultContent"></div>
+            </div>
+        </div>
+        
+        <!-- Contract Testing Card -->
+        <div class="card" style="margin-bottom: 20px;">
+            <h3>🔧 Test Contract</h3>
+            <div>
+                <label>Contract Function:</label>
+                <select id="contractFunction">
+                    <option value="getStatus">getStatus</option>
+                    <option value="getTopBid">getTopBid</option>
+                </select>
+            </div>
+            <button id="callContractBtn" class="btn btn-primary">
+                📡 Call Contract
+            </button>
+            <div id="contractResult" style="margin-top: 15px; padding: 12px; border-radius: 8px; display: none;">
+                <div id="contractResultContent"></div>
+            </div>
+        </div>
+        
+        <!-- Activity Log Card -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">📝 Activity Log</h3>
+                <button id="clearLogBtn" class="btn btn-warning" style="width: auto; padding: 8px 16px; margin: 0;">
+                    Clear Log
+                </button>
+            </div>
+            <div id="logContainer" class="log-container">
+                <div class="log-entry log-info">🎭 Simulated platform initialized. No blockchain required!</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include Blockchain Engine -->
+    <script src="fakeChain.js"></script>
+    
+    <script>
+        /**
+         * MIDNIGHT NFT AUCTION DAPP
+         * Uses localStorage for persistence
+         */
+        
+        // Add log entry
+        function addLog(message, type = 'info') {
+            const container = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Update wallet UI
+        function updateWalletUI() {
+            const wallet = window.FakeChain.wallet;
+            
+            if (wallet.isConnected()) {
+                document.getElementById('walletStatus').textContent = 'Connected ✓';
+                document.getElementById('walletStatus').className = 'status-connected';
+                document.getElementById('walletStatusDot').textContent = '●';
+                document.getElementById('walletStatusDot').className = 'dot-connected';
+                
+                const address = wallet.getAddress();
+                document.getElementById('walletAddress').textContent = address;
+                
+                document.getElementById('laceInstalled').textContent = `${wallet.getBalance()} tNIGHT`;
+                
+                document.getElementById('connectWalletBtn').textContent = 'Connected';
+                document.getElementById('connectWalletBtn').disabled = true;
+            } else {
+                document.getElementById('walletStatus').textContent = 'Not Connected';
+                document.getElementById('walletStatus').className = 'status-disconnected';
+                document.getElementById('walletStatusDot').textContent = '●';
+                document.getElementById('walletStatusDot').className = 'dot-disconnected';
+                document.getElementById('walletAddress').textContent = 'Not connected';
+                document.getElementById('laceInstalled').textContent = '0 tNIGHT';
+                document.getElementById('connectWalletBtn').textContent = 'Connect Wallet';
+                document.getElementById('connectWalletBtn').disabled = false;
+            }
+        }
+        
+        // Update auction list
+        function updateAuctionList() {
+            const auctions = window.FakeChain.blockchain.getAuctions();
+            
+            if (auctions.length > 0) {
+                const latest = auctions[0];
+                document.getElementById('auctionState').textContent = latest.status.toUpperCase();
+                document.getElementById('highestBid').textContent = latest.highestBid + ' tNIGHT';
+                document.getElementById('totalBids').textContent = latest.bids.length;
+                document.getElementById('contractAddress').textContent = latest.id.substring(0, 25) + '...';
+            } else {
+                document.getElementById('auctionState').textContent = 'No Auctions';
+                document.getElementById('highestBid').textContent = '0';
+                document.getElementById('totalBids').textContent = '0';
+                document.getElementById('contractAddress').textContent = 'N/A';
+            }
+        }
+        
+        // Render Marketplace - Show all auctions
+        function renderMarketplace() {
+            const marketplace = document.getElementById('marketplace');
+            const auctions = window.FakeChain.blockchain.getAuctions();
+            const wallet = window.FakeChain.wallet;
+            const myAddress = wallet.isConnected() ? wallet.getAddress() : null;
+            
+            // Clear marketplace
+            marketplace.innerHTML = '';
+            
+            if (auctions.length === 0) {
+                marketplace.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px; color: #9ca3af;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📦</div>
+                        <h3 style="color: #6366f1; margin-bottom: 10px;">No Auctions Yet</h3>
+                        <p>Create the first auction to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Render each auction
+            auctions.forEach(auction => {
+                const isMyAuction = myAddress && auction.creator === myAddress;
+                const canBid = myAddress && !isMyAuction && auction.status === 'open';
+                const canEnd = isMyAuction && auction.status === 'open';
+                const canSettle = isMyAuction && auction.status === 'ended';
+                
+                // Shorten addresses
+                const creatorShort = auction.creator.substring(0, 6) + '...' + auction.creator.substring(auction.creator.length - 4);
+                const bidderShort = auction.highestBidder 
+                    ? auction.highestBidder.substring(0, 6) + '...' + auction.highestBidder.substring(auction.highestBidder.length - 4)
+                    : 'None';
+                
+                const card = document.createElement('div');
+                card.className = 'auction-card';
+                card.innerHTML = `
+                    <div class="auction-card-header">
+                        <div class="auction-title">${auction.title}</div>
+                        <div class="auction-creator">by ${creatorShort}</div>
+                    </div>
+                    
+                    <div class="auction-info">
+                        <div class="auction-info-row">
+                            <span class="auction-label">Starting Price</span>
+                            <span class="auction-value">${auction.startingPrice} tNIGHT</span>
+                        </div>
+                        <div class="auction-info-row">
+                            <span class="auction-label">Highest Bid</span>
+                            <span class="auction-value">${auction.highestBid} tNIGHT</span>
+                        </div>
+                        <div class="auction-info-row">
+                            <span class="auction-label">Highest Bidder</span>
+                            <span class="auction-value" style="font-size: 0.85em;">${bidderShort}</span>
+                        </div>
+                        <div class="auction-info-row">
+                            <span class="auction-label">Total Bids</span>
+                            <span class="auction-value">${auction.bids.length}</span>
+                        </div>
+                        <div class="auction-info-row">
+                            <span class="auction-label">Status</span>
+                            <span class="auction-status status-${auction.status}">${auction.status.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="auction-actions">
+                        ${canBid ? `<button class="btn btn-primary bid-btn" data-auction-id="${auction.id}">💰 Bid</button>` : ''}
+                        ${canEnd ? `<button class="btn btn-warning end-btn" data-auction-id="${auction.id}">🔒 End</button>` : ''}
+                        ${canSettle ? `<button class="btn btn-success settle-btn" data-auction-id="${auction.id}">💸 Settle</button>` : ''}
+                        ${!canBid && !canEnd && !canSettle ? `<button class="btn btn-primary" disabled style="opacity: 0.3;">No Actions Available</button>` : ''}
+                    </div>
+                `;
+                
+                marketplace.appendChild(card);
+            });
+            
+            // Attach event handlers to bid buttons
+            document.querySelectorAll('.bid-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const auctionId = e.target.dataset.auctionId;
+                    await handleBid(auctionId);
+                });
+            });
+            
+            // Attach event handlers to end buttons
+            document.querySelectorAll('.end-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const auctionId = e.target.dataset.auctionId;
+                    await handleEndAuction(auctionId);
+                });
+            });
+            
+            // Attach event handlers to settle buttons
+            document.querySelectorAll('.settle-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const auctionId = e.target.dataset.auctionId;
+                    await handleSettleAuction(auctionId);
+                });
+            });
+        }
+        
+        // Handle Bid
+        async function handleBid(auctionId) {
+            const wallet = window.FakeChain.wallet;
+            const auctions = window.FakeChain.blockchain.getAuctions();
+            const auction = auctions.find(a => a.id === auctionId);
+            
+            if (!auction) {
+                window.FakeChain.toast.show('Auction not found', 'error');
+                return;
+            }
+            
+            // Check if trying to bid on own auction
+            if (auction.creator === wallet.getAddress()) {
+                window.FakeChain.toast.show('❌ Cannot bid on your own auction!', 'error');
+                addLog('❌ Cannot bid on your own auction', 'error');
+                return;
+            }
+            
+            const currentHighest = auction.highestBid;
+            const balance = wallet.getBalance();
+            
+            try {
+                const data = await window.FakeChain.modal.show({
+                    title: `💰 Bid on "${auction.title}"`,
+                    fields: [
+                        {
+                            id: 'amount',
+                            label: `Bid Amount (must be > ${currentHighest} tNIGHT) - Your balance: ${balance} tNIGHT`,
+                            type: 'number',
+                            value: (currentHighest + 100).toString()
+                        }
+                    ],
+                    submitText: 'Place Bid'
+                });
+                
+                const bidAmount = parseFloat(data.amount);
+                
+                // Validate bid amount
+                if (bidAmount <= currentHighest) {
+                    window.FakeChain.toast.show(`❌ Bid must be higher than ${currentHighest} tNIGHT`, 'error');
+                    addLog(`❌ Bid too low: ${bidAmount} <= ${currentHighest}`, 'error');
+                    return;
+                }
+                
+                // Check balance
+                if (bidAmount > balance) {
+                    window.FakeChain.toast.show('❌ Insufficient balance!', 'error');
+                    addLog(`❌ Insufficient balance: ${bidAmount} > ${balance}`, 'error');
+                    return;
+                }
+                
+                const updatedAuction = window.FakeChain.blockchain.placeBid(auctionId, bidAmount);
+                updateWalletUI();
+                updateAuctionList();
+                renderMarketplace();
+                window.FakeChain.toast.show(`✅ Bid placed: ${bidAmount} tNIGHT!`, 'success');
+                addLog(`✅ Bid placed: ${bidAmount} tNIGHT on ${updatedAuction.title}`, 'success');
+                
+            } catch (error) {
+                if (error.message !== 'Cancelled') {
+                    window.FakeChain.toast.show(error.message, 'error');
+                    addLog(`❌ ${error.message}`, 'error');
+                }
+            }
+        }
+        
+        // Handle End Auction
+        async function handleEndAuction(auctionId) {
+            try {
+                const auction = window.FakeChain.blockchain.endAuction(auctionId);
+                updateAuctionList();
+                renderMarketplace();
+                window.FakeChain.toast.show(`🔒 Auction "${auction.title}" ended!`, 'success');
+                addLog(`✅ Auction ended: ${auction.title}`, 'success');
+            } catch (error) {
+                window.FakeChain.toast.show(error.message, 'error');
+                addLog(`❌ ${error.message}`, 'error');
+            }
+        }
+        
+        // Handle Settle Auction
+        async function handleSettleAuction(auctionId) {
+            try {
+                const auction = window.FakeChain.blockchain.settleAuction(auctionId);
+                updateWalletUI();
+                updateAuctionList();
+                renderMarketplace();
+                window.FakeChain.toast.show(`💸 Auction settled! Received ${auction.highestBid} tNIGHT`, 'success');
+                addLog(`✅ Auction settled: ${auction.title} - Received ${auction.highestBid} tNIGHT`, 'success');
+            } catch (error) {
+                window.FakeChain.toast.show(error.message, 'error');
+                addLog(`❌ ${error.message}`, 'error');
+            }
+        }
+        
+        // Connect Wallet
+        document.getElementById('connectWalletBtn').addEventListener('click', async () => {
+            try {
+                const data = await window.FakeChain.modal.show({
+                    title: '🌙 Connect Wallet',
+                    fields: [
+                        {
+                            id: 'address',
+                            label: 'Enter Your Username/Address',
+                            type: 'text',
+                            placeholder: 'e.g., midnight_user_123',
+                            value: 'midnight_user_' + Math.random().toString(36).substring(7)
+                        }
+                    ],
+                    submitText: 'Connect'
+                });
+                
+                const address = window.FakeChain.wallet.connect(data.address);
+                updateWalletUI();
+                renderMarketplace();
+                window.FakeChain.toast.show(`🎉 Connected as ${address}! (Starting balance: 31337 tNIGHT)`, 'success');
+                addLog(`✅ Wallet connected: ${address}`, 'success');
+                
+            } catch (error) {
+                if (error.message !== 'Cancelled') {
+                    window.FakeChain.toast.show(error.message, 'error');
+                    addLog(`❌ ${error.message}`, 'error');
+                }
+            }
+        });
+        
+        // Start Auction
+        document.getElementById('startAuctionBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('Please connect wallet first', 'warning');
+                return;
+            }
+            
+            try {
+                const data = await window.FakeChain.modal.show({
+                    title: '🎨 Create New Auction',
+                    fields: [
+                        {
+                            id: 'title',
+                            label: 'NFT Title',
+                            type: 'text',
+                            placeholder: 'e.g., Cool NFT #123'
+                        },
+                        {
+                            id: 'startingPrice',
+                            label: 'Starting Price (tNIGHT)',
+                            type: 'number',
+                            value: '100'
+                        }
+                    ],
+                    submitText: 'Create Auction'
+                });
+                
+                const auction = window.FakeChain.blockchain.createAuction(data.title, data.startingPrice);
+                updateWalletUI();
+                updateAuctionList();
+                renderMarketplace();
+                window.FakeChain.toast.show(`🎉 Auction "${data.title}" created! (Fee: 100 tNIGHT)`, 'success');
+                addLog(`✅ Auction created: ${data.title} - Starting at ${data.startingPrice} tNIGHT`, 'success');
+                
+            } catch (error) {
+                if (error.message !== 'Cancelled') {
+                    window.FakeChain.toast.show(error.message, 'error');
+                    addLog(`❌ ${error.message}`, 'error');
+                }
+            }
+        });
+        
+        // Submit Bid
+        document.getElementById('submitBidBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('⚠️ Please connect wallet first', 'warning');
+                return;
+            }
+            
+            const auctions = window.FakeChain.blockchain.getAuctions();
+            const myAddress = window.FakeChain.wallet.getAddress();
+            const openAuctions = auctions.filter(a => a.status === 'open' && a.creator !== myAddress);
+            
+            if (openAuctions.length === 0) {
+                window.FakeChain.toast.show('⚠️ No open auctions available to bid on!', 'warning');
+                addLog('⚠️ No open auctions to bid on (excluding your own)', 'warning');
+                return;
+            }
+            
+            const auction = openAuctions[0];
+            await handleBid(auction.id);
+        });
+        
+        // End Auction
+        document.getElementById('endAuctionBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('⚠️ Please connect wallet first', 'warning');
+                return;
+            }
+            
+            const myAuctions = window.FakeChain.blockchain.getMyAuctions().filter(a => a.status === 'open');
+            
+            if (myAuctions.length === 0) {
+                window.FakeChain.toast.show('⚠️ No open auctions to end', 'warning');
+                return;
+            }
+            
+            await handleEndAuction(myAuctions[0].id);
+        });
+        
+        // Settle Auction
+        document.getElementById('settleAuctionBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('⚠️ Please connect wallet first', 'warning');
+                return;
+            }
+            
+            const myAuctions = window.FakeChain.blockchain.getMyAuctions().filter(a => a.status === 'ended');
+            
+            if (myAuctions.length === 0) {
+                window.FakeChain.toast.show('⚠️ No ended auctions to settle', 'warning');
+                return;
+            }
+            
+            await handleSettleAuction(myAuctions[0].id);
+        });
+        
+        // Send Transaction
+        document.getElementById('sendTxBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('Please connect wallet first', 'warning');
+                showTxResult('Please connect wallet first', 'error');
+                return;
+            }
+            
+            const recipient = document.getElementById('recipientInput').value.trim();
+            const amount = document.getElementById('txAmount').value;
+            
+            if (!recipient) {
+                window.FakeChain.toast.show('Please enter recipient address', 'warning');
+                showTxResult('Please enter recipient address', 'error');
+                return;
+            }
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                window.FakeChain.toast.show('Please enter valid amount', 'warning');
+                showTxResult('Please enter valid amount', 'error');
+                return;
+            }
+            
+            try {
+                window.FakeChain.wallet.deductTokens(parseFloat(amount), `Transfer to ${recipient}`);
+                const txHash = window.FakeChain.wallet.generateTxHash();
+                
+                updateWalletUI();
+                window.FakeChain.toast.show(`✅ Sent ${amount} tNIGHT to ${recipient}`, 'success');
+                showTxResult(
+                    `✅ Success!<br>
+                    <strong>Hash:</strong> <span style="font-family: monospace; font-size:0.75em;">${txHash.substring(0, 30)}...${txHash.substring(txHash.length - 10)}</span><br>
+                    <strong>Amount:</strong> ${amount} tNIGHT<br>
+                    <strong>To:</strong> ${recipient.substring(0, 30)}...`,
+                    'success'
+                );
+                addLog(`✅ Sent ${amount} tNIGHT to ${recipient}`, 'success');
+                
+                // Clear form
+                document.getElementById('recipientInput').value = '';
+                document.getElementById('txAmount').value = '1';
+                
+            } catch (error) {
+                window.FakeChain.toast.show(error.message, 'error');
+                showTxResult(`❌ Failed: ${error.message}`, 'error');
+                addLog(`❌ ${error.message}`, 'error');
+            }
+        });
+        
+        // Check Balance
+        document.getElementById('checkBalanceBtn').addEventListener('click', async () => {
+            if (!window.FakeChain.wallet.isConnected()) {
+                window.FakeChain.toast.show('Please connect wallet first', 'warning');
+                return;
+            }
+            
+            const balance = window.FakeChain.wallet.getBalance();
+            const address = window.FakeChain.wallet.getAddress();
+            
+            showTxResult(
+                `💰 Balance: <strong>${balance} tNIGHT</strong><br>
+                Address: ${address.substring(0, 40)}...`,
+                'success'
+            );
+            window.FakeChain.toast.show(`💰 Balance: ${balance} tNIGHT`, 'success');
+            addLog(`✅ Balance: ${balance} tNIGHT`, 'success');
+        });
+        
+        // Helper to show transaction result
+        function showTxResult(message, type) {
+            const resultDiv = document.getElementById('txResult');
+            const contentDiv = document.getElementById('txResultContent');
+            
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = message;
+            
+            if (type === 'success') {
+                resultDiv.style.background = 'rgba(34,197,94,0.1)';
+                resultDiv.style.border = '2px solid #22c55e';
+                resultDiv.style.color = '#22c55e';
+            } else if (type === 'error') {
+                resultDiv.style.background = 'rgba(239,68,68,0.1)';
+                resultDiv.style.border = '2px solid #ef4444';
+                resultDiv.style.color = '#ef4444';
+            } else {
+                resultDiv.style.background = 'rgba(99,102,241,0.1)';
+                resultDiv.style.border = '2px solid #6366f1';
+                resultDiv.style.color = '#6366f1';
+            }
+        }
+        
+        // Helper to show contract result
+        function showContractResult(message, type) {
+            const resultDiv = document.getElementById('contractResult');
+            const contentDiv = document.getElementById('contractResultContent');
+            
+            resultDiv.style.display = 'block';
+            contentDiv.innerHTML = message;
+            
+            if (type === 'success') {
+                resultDiv.style.background = 'rgba(34,197,94,0.1)';
+                resultDiv.style.border = '2px solid #22c55e';
+                resultDiv.style.color = '#22c55e';
+            } else if (type === 'error') {
+                resultDiv.style.background = 'rgba(239,68,68,0.1)';
+                resultDiv.style.border = '2px solid #ef4444';
+                resultDiv.style.color = '#ef4444';
+            } else {
+                resultDiv.style.background = 'rgba(99,102,241,0.1)';
+                resultDiv.style.border = '2px solid #6366f1';
+                resultDiv.style.color = '#6366f1';
+            }
+        }
+        
+        // Test Contract (simulated)
+        document.getElementById('callContractBtn').addEventListener('click', async () => {
+            const functionName = document.getElementById('contractFunction').value;
+            const btn = document.getElementById('callContractBtn');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Calling...';
+            
+            try {
+                const auctions = window.FakeChain.blockchain.getAuctions();
+                let result = {};
+                
+                if (functionName === 'getStatus') {
+                    result = {
+                        status: auctions.length > 0 ? auctions[0].status : 'NoAuctions',
+                        txHash: window.FakeChain.wallet.generateTxHash()
+                    };
+                } else if (functionName === 'getTopBid') {
+                    result = {
+                        topBid: auctions.length > 0 ? auctions[0].highestBid : 0,
+                        txHash: window.FakeChain.wallet.generateTxHash()
+                    };
+                }
+                
+                let resultHtml = `<strong>✅ Contract Call Success!</strong><br><br>`;
+                resultHtml += `<strong>Function:</strong> ${functionName}<br>`;
+                resultHtml += `<strong>TX Hash:</strong> <span style="font-family: monospace; font-size: 0.75em;">${result.txHash?.substring(0, 20)}...${result.txHash?.substring(result.txHash.length - 10)}</span><br>`;
+                
+                if (result.status) {
+                    resultHtml += `<strong>Status:</strong> ${result.status}<br>`;
+                }
+                if (result.topBid !== undefined) {
+                    resultHtml += `<strong>Top Bid:</strong> ${result.topBid} tNIGHT<br>`;
+                }
+                
+                resultHtml += `<strong>Time:</strong> ${new Date().toLocaleString()}<br>`;
+                
+                showContractResult(resultHtml, 'success');
+                window.FakeChain.toast.show('📡 Contract call successful!', 'success');
+                addLog(`✅ Contract call: ${functionName}`, 'success');
+                
+            } catch (error) {
+                showContractResult(`<strong>❌ Failed</strong><br><br>${error.message}`, 'error');
+                window.FakeChain.toast.show(error.message, 'error');
+                addLog(`❌ ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '📡 Call Contract';
+            }
+        });
+        
+        // Clear Log
+        document.getElementById('clearLogBtn').addEventListener('click', () => {
+            document.getElementById('logContainer').innerHTML = '';
+            addLog('🗑️ Log cleared', 'info');
+        });
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update UI from saved state
+            updateWalletUI();
+            updateAuctionList();
+            renderMarketplace();
+            
+            // Auto-refresh every 2 seconds
+            setInterval(() => {
+                updateWalletUI();
+                updateAuctionList();
+                renderMarketplace();
+            }, 2000);
+            
+            addLog('✅ Platform Ready', 'success');
+            addLog('💡 Click "Connect Wallet" to enter your username', 'info');
+            addLog('🏪 Marketplace will display all auctions', 'info');
+        });
+    </script>
+    
+    <!-- Header Logos -->
+    <script type="module">
+        import { LEFT_LOGO } from './assets/branding/left-logo.js';
+        import { RIGHT_LOGO } from './assets/branding/right-logo.js';
+        
+        document.getElementById('leftLogo').src = LEFT_LOGO;
+        document.getElementById('rightLogo').src = RIGHT_LOGO;
+    </script>
+    
+    <!-- Cursor Sparkle Effect -->
+    <script src="sparkle.js"></script>
+</body>
+</html>
