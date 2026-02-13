@@ -9,6 +9,68 @@
 
 ---
 
+
+<img width="610" height="47" alt="local-proof-server" src="https://github.com/user-attachments/assets/4edffe3a-c750-4ed6-b95b-9707c0ae5450" />
+
+
+
+.....
+
+
+<img width="800" height="222" alt="lace-undeployed-balance" src="https://github.com/user-attachments/assets/ab5228d6-87dd-4e77-a1a5-b583ff80b825" />
+
+
+
+.....
+
+
+<img width="1470" height="277" alt="docker-ps" src="https://github.com/user-attachments/assets/e4088a64-d655-4b50-9839-e64b15c7b340" />
+
+
+
+.....
+
+
+
+<img width="1470" height="954" alt="Screenshot 2026-02-13 at 6 42 53 PM" src="https://github.com/user-attachments/assets/1900b7b1-433a-4e7c-b472-f05d76cfa677" />
+
+
+
+.....
+
+
+
+<img width="1470" height="955" alt="Screenshot 2026-02-13 at 6 43 31 PM" src="https://github.com/user-attachments/assets/7114d04f-91ed-4d57-adfa-462dba99530f" />
+
+
+
+.....
+
+
+
+<img width="1470" height="956" alt="Screenshot 2026-02-13 at 6 43 57 PM" src="https://github.com/user-attachments/assets/ca95223a-a76e-4264-b179-53d402c1abbc" />
+
+
+
+.....
+
+
+
+<img width="1470" height="955" alt="Screenshot 2026-02-13 at 6 44 24 PM" src="https://github.com/user-attachments/assets/2ca294af-ad79-42a3-917b-d08492a835fe" />
+
+
+**Project Demo :-**
+
+
+
+https://github.com/user-attachments/assets/9fbb80b3-7773-4839-81e8-920de42e29b6
+
+
+
+
+
+
+
 ## Project Overview
 
 This project is a **functional UI prototype** that demonstrates how privacy-preserving NFT auctions would work on the Midnight Network blockchain. It showcases the complete user experience—wallet connection, auction creation, confidential bidding, and settlement—while mapping frontend interactions to Midnight's Compact smart contract design patterns.
