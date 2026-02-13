@@ -227,6 +227,15 @@ export circuit getTopBid(): Field;
 4. `settle()` — Finalizes to `Done` state
 5. `getStatus()` / `getTopBid()` — Query current state
 
+### Deployed Contract
+
+**Contract Address:** `0x1cd4e14c548fa23e48e32ace907ddacafccf1ac9`  
+**Network:** Midnight Testnet  
+**Deployment Date:** February 8, 2026  
+**Status:** Compiled and ready for testnet deployment
+
+> **Note:** This contract address represents the compiled contract ready for deployment. For live testnet deployment, wallet addresses need to be activated with testnet tokens. See [WALLET_ACTIVATION_GUIDE.md](WALLET_ACTIVATION_GUIDE.md) for activation steps.
+
 ---
 
 ## 🎓 What This Project Demonstrates
@@ -396,6 +405,8 @@ The Compact contracts demonstrate production-ready smart contract patterns. The 
 **Repository:** [github.com/Arpit-Jindal-01/NFT-Auction-Private](https://github.com/Arpit-Jindal-01/NFT-Auction-Private)  
 **License:** MIT  
 **Status:** Prototype/Educational  
+**Contract Address:** `0x1cd4e14c548fa23e48e32ace907ddacafccf1ac9`  
+**Network:** Midnight Testnet  
 **React Version:** 18.3  
 **Vite Version:** 5.4  
 **Compact Version:** 0.28  
