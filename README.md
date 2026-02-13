@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
 
-**Contrat Addresses :- ** 0x1cd4e14c548fa23e48e32ace907ddacafccf1ac9
+Contrat Addresses :- 0x1cd4e14c548fa23e48e32ace907ddacafccf1ac9
 
 ---
 
